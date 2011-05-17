@@ -146,6 +146,7 @@
 			<cs:attribute name="package.tmf-xtext-SDK" />
 			<cs:attribute name="package.tmf-xtext-examples" />
 			<cs:attribute name="package.tmf-xtext-runtime" />
+			<cs:attribute name="package.tmf-xtext-tests" />
 			<cs:attribute name="package.tmf-xtext-sourcedoc" />
 		</cs:public>
 	</cs:groups>
