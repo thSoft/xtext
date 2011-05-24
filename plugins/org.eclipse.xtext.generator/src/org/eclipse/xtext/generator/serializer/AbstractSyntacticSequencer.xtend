@@ -28,6 +28,7 @@ import org.eclipse.xtext.serializer.analysis.NfaToGrammar$NfaToGrammar$AbstractE
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.IGrammarAccess
 import org.eclipse.xtext.serializer.analysis.ISyntacticSequencerPDAProvider$ISynTransition
+import org.eclipse.xtext.util.Strings
 
 class AbstractSyntacticSequencer extends GeneratedFile {
 	
@@ -109,7 +110,7 @@ class AbstractSyntacticSequencer extends GeneratedFile {
 	
 	def unassignedCalledTokenRuleName(AbstractRule rule) '''get«rule.name»Token'''
 	
-	def defaultValue(AbstractElement ele, Set<AbstractElement> visited) {
+	def String defaultValue(AbstractElement ele, Set<AbstractElement> visited) {
 		switch(ele) {
 			case !visited.add(ele): ""
 			case ele.isOptionalCardinality(): ""
@@ -135,7 +136,9 @@ class AbstractSyntacticSequencer extends GeneratedFile {
 	
 	def genGetUnassignedRuleCallToken(JavaFile file, AbstractRule rule) '''
 		protected String «rule.unassignedCalledTokenRuleName»(RuleCall ruleCall, INode node) {
-			return "«rule.alternatives.defaultValue(newHashSet)»";
+			if (node != null)
+				return getTokenText(node);
+			return "«Strings::convertToJavaString(rule.alternatives.defaultValue(newHashSet))»";
 		}
 	'''
 	

@@ -26,7 +26,7 @@ import org.eclipse.xtext.serializer.analysis.ISyntacticSequencerPDAProvider.ISyn
 import org.eclipse.xtext.serializer.analysis.ISyntacticSequencerPDAProvider.ISynFollowerOwner;
 import org.eclipse.xtext.serializer.analysis.ISyntacticSequencerPDAProvider.ISynState;
 import org.eclipse.xtext.serializer.analysis.ISyntacticSequencerPDAProvider.ISynTransition;
-import org.eclipse.xtext.serializer.analysis.NfaToGrammar.ALternativeAlias;
+import org.eclipse.xtext.serializer.analysis.NfaToGrammar.AlternativeAlias;
 import org.eclipse.xtext.serializer.analysis.NfaToGrammar.AbstractElementAlias;
 import org.eclipse.xtext.serializer.analysis.NfaToGrammar.ElementAlias;
 import org.eclipse.xtext.serializer.analysis.NfaToGrammar.GroupAlias;
@@ -119,10 +119,12 @@ public class SyntacticSequencerUtil {
 		Map<AbstractElementAlias<ISynState>, List<ISynTransition>> result = Maps.newHashMap();
 		for (ISynTransition transition : getAllAmbiguousTransitions()) {
 			AbstractElementAlias<ISynState> syntax = transition.getAmbiguousSyntax();
-			List<ISynTransition> list = result.get(syntax);
-			if (list == null)
-				result.put(syntax, list = Lists.newArrayList());
-			list.add(transition);
+			if (syntax != null) {
+				List<ISynTransition> list = result.get(syntax);
+				if (list == null)
+					result.put(syntax, list = Lists.newArrayList());
+				list.add(transition);
+			}
 		}
 		ambiguousTransitions = Lists.newArrayList();
 		for (Map.Entry<AbstractElementAlias<ISynState>, List<ISynTransition>> e : result.entrySet())
@@ -160,9 +162,9 @@ public class SyntacticSequencerUtil {
 				return "__" + body + "__" + card;
 			} else
 				return body;
-		} else if (alias instanceof ALternativeAlias<?>) {
+		} else if (alias instanceof AlternativeAlias<?>) {
 			List<String> children = Lists.newArrayList();
-			for (AbstractElementAlias<ISynState> child : ((ALternativeAlias<ISynState>) alias).getChildren())
+			for (AbstractElementAlias<ISynState> child : ((AlternativeAlias<ISynState>) alias).getChildren())
 				children.add(elementAliasToIdentifyer(child, rules, true));
 			Collections.sort(children);
 			String body = Join.join("_or_", children);
@@ -194,13 +196,13 @@ public class SyntacticSequencerUtil {
 			String body = Join.join(", ", children);
 			String grpAlias = file.imported(GroupAlias.class);
 			return "new " + grpAlias + "<" + absEle + ">(" + optional + ", " + many + ", " + body + ")";
-		} else if (alias instanceof ALternativeAlias<?>) {
+		} else if (alias instanceof AlternativeAlias<?>) {
 			List<String> children = Lists.newArrayList();
-			for (AbstractElementAlias<ISynState> child : ((ALternativeAlias<ISynState>) alias).getChildren())
+			for (AbstractElementAlias<ISynState> child : ((AlternativeAlias<ISynState>) alias).getChildren())
 				children.add(elementAliasToConstructor(child, file));
 			Collections.sort(children);
 			String body = Join.join(", ", children);
-			String altAlias = file.imported(ALternativeAlias.class);
+			String altAlias = file.imported(AlternativeAlias.class);
 			return "new " + altAlias + "<" + absEle + ">(" + optional + ", " + many + ", " + body + ")";
 		}
 		throw new RuntimeException("unknown element");

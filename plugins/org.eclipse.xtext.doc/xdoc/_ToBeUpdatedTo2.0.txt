@@ -7,13 +7,13 @@
 # 015-getting-started.xdoc
 # 016-working-with-Xtext-models.xdoc
 # 017-getting-started-xpand.xdoc
-SZ 020-grammar-language.xdoc
-SE 030-generator.xdoc
-040-dependency-injection.xdoc
-050-heading-runtime.xdoc
-060-validation.xdoc
-070-linking.xdoc
-080-scoping.xdoc
+DONE SZ 020-grammar-language.xdoc
+DONE SE 030-generator.xdoc
+DONE JK 040-dependency-injection.xdoc
+DONE JK 050-heading-runtime.xdoc
+DONE JK 060-validation.xdoc
+DONE JK 070-linking.xdoc
+DONE JK 080-scoping.xdoc
 090-valueconverter.xdoc
 100-serialization.xdoc
 105-formatting.xdoc
@@ -24,9 +24,9 @@ SE 030-generator.xdoc
 130-managing-concurrency.xdoc
 140-labelprovider.xdoc
 150-contentassist.xdoc
-155-quickfix.xdoc
+DONE JK 155-quickfix.xdoc
 160-templates.xdoc
-170-outline.xdoc
+DONE JK 170-outline.xdoc
 180-hyperlinking.xdoc
 195-highlighting.xdoc
 198-wizards.xdoc
@@ -34,7 +34,7 @@ SE 030-generator.xdoc
 200-Appendix.xdoc
 205-typical-language-configs.xdoc
 206-expressions-in-xtext.xdoc
-210-emf-integration.xdoc
+DONE JK 210-emf-integration.xdoc
 215-migrating-from-0.7.xdoc
 220-deploying-dsls.xdoc
 230-antlr-ip-issue.xdoc

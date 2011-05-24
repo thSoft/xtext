@@ -275,7 +275,7 @@
 
 			// project wizard (optional) 
 			// fragment = projectWizard.SimpleProjectWizardFragment {
-			// 		generatorProjectName = "${projectName}.generator" 
+			// 		generatorProjectName = "${projectName}"
 			//		modelFileExtension = file.extensions
 			// }
 
@@ -297,7 +297,7 @@
             // }
 
             // Serializer 2.0
-            // serializer.SerializerFragment {}
+            // fragment = serializer.SerializerFragment {}
 		}
 	}]]>
          </MweSnippet>
@@ -406,7 +406,7 @@
 
             // project wizard (optional)
             // fragment = projectWizard.SimpleProjectWizardFragment {
-            //      generatorProjectName = "${projectName}.generator"
+            //      generatorProjectName = "${projectName}"
             //      modelFileExtension = file.extensions
             // }
 

@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -48,9 +49,13 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.emf.ecore.xmi.impl.URIHandlerImpl;
+import org.eclipse.emf.ecore.xml.namespace.XMLNamespacePackage;
+import org.eclipse.emf.ecore.xml.type.XMLTypePackage;
 import org.eclipse.emf.mwe.core.ConfigurationException;
 import org.eclipse.emf.mwe.core.WorkflowInterruptedException;
+import org.eclipse.emf.mwe.utils.GenModelHelper;
 import org.eclipse.emf.mwe.utils.Mapping;
+import org.eclipse.emf.mwe.utils.StandaloneSetup;
 import org.eclipse.emf.mwe2.ecore.CvsIdFilteringGeneratorAdapterFactoryDescriptor;
 import org.eclipse.xpand2.XpandExecutionContext;
 import org.eclipse.xtext.EcoreUtil2;
@@ -58,6 +63,7 @@ import org.eclipse.xtext.GeneratedMetamodel;
 import org.eclipse.xtext.Grammar;
 import org.eclipse.xtext.GrammarUtil;
 import org.eclipse.xtext.generator.AbstractGeneratorFragment;
+import org.eclipse.xtext.generator.GenModelAccess;
 import org.eclipse.xtext.generator.IGeneratorFragment;
 import org.eclipse.xtext.resource.XtextResourceSet;
 import org.eclipse.xtext.util.Strings;
@@ -66,6 +72,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * A {@link IGeneratorFragment} that saves the generated Ecore models and creates appropriate EMF generators. Then it
@@ -101,6 +108,7 @@ public class EcoreGeneratorFragment extends AbstractGeneratorFragment {
 
 	private String modelPluginID = null;
 
+	@Deprecated
 	private String referencedGenModels;
 
 	private boolean skipGenerate = false;
@@ -155,6 +163,8 @@ public class EcoreGeneratorFragment extends AbstractGeneratorFragment {
 	@Override
 	public void generate(Grammar grammar, XpandExecutionContext ctx) {
 		try {
+			registerReferencedGenModels();
+
 			// create a defensive clone
 			ResourceSet copiedResourceSet = EcoreUtil2.clone(new XtextResourceSet(), grammar.eResource()
 					.getResourceSet());
@@ -168,9 +178,8 @@ public class EcoreGeneratorFragment extends AbstractGeneratorFragment {
 				XtextResourceSet resourceSet = getNsUriMappingResourceSet();
 
 				Resource ePackages = createResourceForEPackages(copiedGrammar, ctx, packs, resourceSet);
-				List<GenPackage> genPackages = loadReferencedGenModels(resourceSet);
 				if (!skipGenerate) {
-					GenModel genModel = getSaveAndReconcileGenModel(resourceSet, copiedGrammar, ctx, packs, genPackages);
+					GenModel genModel = getSaveAndReconcileGenModel(resourceSet, copiedGrammar, ctx, packs);
 					genModel.reconcile();
 					doGenerate(genModel);
 					if (basePackage == null)
@@ -203,6 +212,10 @@ public class EcoreGeneratorFragment extends AbstractGeneratorFragment {
 
 	}
 
+	/**
+	 * Use {@link GenModelAccess#getGenPackage(EPackage)}
+	 */
+	@Deprecated
 	protected List<GenPackage> loadReferencedGenModels(ResourceSet rs) {
 		List<GenPackage> result = Lists.newArrayList();
 		if (getReferencedGenModels() != null) {
@@ -217,10 +230,62 @@ public class EcoreGeneratorFragment extends AbstractGeneratorFragment {
 					}
 				} catch (Exception e) {
 					log.error("Couldn't find genmodel for uri '" + uri + "'");
-					throw new RuntimeException(e);
+					throw new WrappedException(e);
 				}
 			}
 		}
+		return result;
+	}
+
+	/**
+	 * @since 2.0
+	 */
+	protected Set<EPackage> getReferencedEPackages(List<EPackage> packs) {
+		Set<EPackage> result = Sets.newHashSet();
+		for (EPackage pkg : packs) {
+			TreeIterator<EObject> it = pkg.eAllContents();
+			while (it.hasNext()) {
+				EObject obj = it.next();
+				for (EObject crossRef : obj.eCrossReferences()) {
+					if (crossRef.eIsProxy())
+						log.error("Proxy '" + ((InternalEObject) crossRef).eProxyURI() + "' could not be resolved");
+					else {
+						EPackage p = EcoreUtil2.getContainerOfType(crossRef, EPackage.class);
+						if (p != null)
+							result.add(p);
+					}
+				}
+			}
+		}
+		for (EPackage pkg : packs)
+			result.remove(pkg);
+		// the following GenModels are handled by the EMF's generator as implemented in:
+		//org.eclipse.emf.codegen.ecore.genmodel.impl.GenModelImpl.findGenPackage(EPackage)
+		result.remove(EcorePackage.eINSTANCE);
+		result.remove(XMLTypePackage.eINSTANCE);
+		result.remove(XMLNamespacePackage.eINSTANCE);
+		return result;
+	}
+
+	/**
+	 * @since 2.0
+	 */
+	protected List<GenPackage> getGenPackagesForPackages(GenModel existingGenModel, Collection<EPackage> packs) {
+		List<GenPackage> result = Lists.newArrayList();
+		for (EPackage pkg : packs) {
+			boolean found = false;
+			for (GenPackage gp : existingGenModel.getGenPackages())
+				if (gp.getEcorePackage() != null && gp.getEcorePackage().getNsURI() != null
+						&& gp.getEcorePackage().getNsURI().equals(pkg.getNsURI()))
+					found = true;
+			if (!found)
+				result.add(GenModelAccess.getGenPackage(pkg, existingGenModel.eResource().getResourceSet()));
+		}
+		Collections.sort(result, new Comparator<GenPackage>() {
+			public int compare(GenPackage o1, GenPackage o2) {
+				return EcoreUtil.getURI(o1).toString().compareTo(EcoreUtil.getURI(o2).toString());
+			}
+		});
 		return result;
 	}
 
@@ -238,12 +303,13 @@ public class EcoreGeneratorFragment extends AbstractGeneratorFragment {
 		for (Entry<EObject, URI> entry : object2Uri.entrySet()) {
 			InternalEObject key = (InternalEObject) entry.getKey();
 			if (shouldBeProxified(key, packs)) {
-				checkGenModelExists(key);
+				//				checkGenModelExists(key);
 				key.eSetProxyURI(entry.getValue());
 			}
 		}
 	}
 
+	@Deprecated
 	protected void checkGenModelExists(InternalEObject key) {
 		if (getReferencedGenModels() == null && this.genModel == null)
 			throw new WorkflowInterruptedException(
@@ -410,8 +476,8 @@ public class EcoreGeneratorFragment extends AbstractGeneratorFragment {
 		} else {
 			String prefix;
 			try {
-				prefix = new File(getXmiModelDirectory(grammar, getJavaModelDirectory(ctx))).getCanonicalPath() + File.separator
-						+ getModelName(grammar);
+				prefix = new File(getXmiModelDirectory(grammar, getJavaModelDirectory(ctx))).getCanonicalPath()
+						+ File.separator + getModelName(grammar);
 			} catch (IOException e) {
 				throw new WrappedException(e);
 			}
@@ -456,6 +522,18 @@ public class EcoreGeneratorFragment extends AbstractGeneratorFragment {
 
 			@Override
 			public Resource getResource(URI uri, boolean loadOnDemand) {
+				if (!uriMapping.containsKey(uri)
+						&& EcorePlugin.getEPackageNsURIToGenModelLocationMap().containsKey(uri.toString())) {
+					URI genModelURI = EcorePlugin.getEPackageNsURIToGenModelLocationMap().get(uri.toString());
+					Resource genModelRes = super.getResource(genModelURI, true);
+					if (!genModelRes.getContents().isEmpty() && genModelRes.getContents().get(0) instanceof GenModel) {
+						GenModel genModel = (GenModel) genModelRes.getContents().get(0);
+						for (GenPackage gp : genModel.getGenPackages()) {
+							EPackage pack = gp.getEcorePackage();
+							uriMapping.put(URI.createURI(pack.getNsURI()), pack.eResource().getURI());
+						}
+					}
+				}
 				if (uriMapping.containsKey(uri))
 					uri = uriMapping.get(uri);
 				return super.getResource(uri, loadOnDemand);
@@ -468,6 +546,7 @@ public class EcoreGeneratorFragment extends AbstractGeneratorFragment {
 		return Collections.singletonList((Object) getBasePackage(grammar));
 	}
 
+	@Deprecated
 	public String getReferencedGenModels() {
 		return referencedGenModels;
 	}
@@ -476,22 +555,19 @@ public class EcoreGeneratorFragment extends AbstractGeneratorFragment {
 	public String[] getRequiredBundlesRt(Grammar grammar) {
 		return new String[] { "org.eclipse.emf.ecore", "org.eclipse.emf.common" };
 	}
+
+	@Deprecated
+	protected GenModel getSaveAndReconcileGenModel(ResourceSet rs, Grammar grammar, XpandExecutionContext ctx,
+			List<EPackage> packs, List<GenPackage> usedGenPackages) throws ConfigurationException {
+		return getSaveAndReconcileGenModel(rs, grammar, ctx, packs);
+	}
 	
 	/**
 	 * @since 2.0
 	 */
-	protected void registerGenmodel(GenModel genModel) {
-		Map<String, URI> registry = EcorePlugin.getEPackageNsURIToGenModelLocationMap();
-		URI uri = genModel.eResource().getURI();
-		for (GenPackage pkg : genModel.getGenPackages())
-			registry.put(pkg.getEcorePackage().getNsURI(), uri);
-	}
-
 	protected GenModel getSaveAndReconcileGenModel(ResourceSet rs, Grammar grammar, XpandExecutionContext ctx,
-			List<EPackage> packs, List<GenPackage> usedGenPackages) throws ConfigurationException {
-		GenModel genModel = null;
-
-		genModel = getGenModel(rs, grammar, ctx, packs);
+			List<EPackage> packs) throws ConfigurationException {
+		GenModel genModel = getGenModel(rs, grammar, ctx, packs);
 		genModel.initialize(packs);
 		for (GenPackage genPackage : genModel.getGenPackages()) {
 			genPackage.setBasePackage(getBasePackage(grammar));
@@ -499,6 +575,7 @@ public class EcoreGeneratorFragment extends AbstractGeneratorFragment {
 				genPackage.setFileExtensions(getFileExtensions());
 			}
 		}
+		List<GenPackage> usedGenPackages = getGenPackagesForPackages(genModel, getReferencedEPackages(packs));
 		genModel.getUsedGenPackages().addAll(usedGenPackages);
 		resolveAll(rs);
 		try {
@@ -507,7 +584,7 @@ public class EcoreGeneratorFragment extends AbstractGeneratorFragment {
 		} catch (IOException e) {
 			throw new WrappedException(e);
 		}
-		registerGenmodel(genModel);
+		new GenModelHelper().registerGenModel(genModel);
 		return genModel;
 	}
 
@@ -540,8 +617,10 @@ public class EcoreGeneratorFragment extends AbstractGeneratorFragment {
 	/**
 	 * Sets the URIs for the generated EMF generator models (aka genmodels).
 	 * 
+	 * use {@link StandaloneSetup#addRegisterGenModelFile(String)}
+	 * 
 	 * @param uris
-	 * @deprecated The property 'genModels' is deprecated. Please use 'referencedGenModels' instead.
+	 * @deprecated
 	 */
 	@Deprecated
 	public void setGenModels(String uris) {
@@ -645,10 +724,36 @@ public class EcoreGeneratorFragment extends AbstractGeneratorFragment {
 		modelPluginID = modelPluginId;
 	}
 
+	/**
+	 * use {@link StandaloneSetup#addRegisterGenModelFile(String)}
+	 */
+	@Deprecated
 	public void setReferencedGenModels(String referencedGenModel) {
 		if ("".equals(referencedGenModel))
 			return;
 		this.referencedGenModels = referencedGenModel;
+		log.warn("The property 'referencedGenModels' is deprecated. Please use 'StandaloneSetup.registerGenModelFile' instead.");
+	}
+
+	/**
+	 * @since 2.0
+	 */
+	@Deprecated
+	protected void registerReferencedGenModels() {
+		try {
+			if (getReferencedGenModels() != null && getReferencedGenModels().length() > 0) {
+				ResourceSet rs = new XtextResourceSet();
+				GenModelHelper gmh = new GenModelHelper();
+				for (String uriStr : getReferencedGenModels().split(",")) {
+					URI uri = URI.createURI(uriStr.trim());
+					gmh.registerGenModel(rs, uri);
+				}
+			}
+		} catch (ConfigurationException ce) {
+			throw ce;
+		} catch (Exception e) {
+			log.error(e, e);
+		}
 	}
 
 	/**

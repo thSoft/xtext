@@ -1,7 +1,5 @@
 section:fragmentProvider[Fragment Provider (Referencing Xtext Models From Other EMF Artifacts)]
 
-todo[Revert to section2 when we allow Section2Refs]
-
 Although inter-Xtext linking is not done by URIs, you may want to be able to reference your e[EObject] 
 from non-Xtext models. In those cases URIs are used, which are made up of a part identifying the resource 
 and a second part that points to an object. 
@@ -25,7 +23,7 @@ per language. It has two methods: e[getFragment(EObject, Fallback)] to calculate
 e[EObject] and e[getEObject(Resource, String, Fallback)] to go the opposite direction. The e[Fallback] 
 interface allows to delegate to the default strategy - usually the fragment paths described above. 
 
-The following snippet from the ref:gmf_integration[GMF Example] shows how to use qualified names as fragments:   
+The following snippet shows how to use qualified names as fragments:   
 
 code[Java][public QualifiedNameFragmentProvider implements IFragmentProvider {
 
@@ -33,8 +31,8 @@ code[Java][public QualifiedNameFragmentProvider implements IFragmentProvider {
   private IQualifiedNameProvider qualifiedNameProvider;
 
   public String getFragment(EObject obj, Fallback fallback) {
-    String qualifiedName = qualifiedNameProvider.getQualifiedName(obj);
-    return qualifiedName != null ? qualifiedName : fallback.getFragment(obj);
+    String qName = qualifiedNameProvider.getQualifiedName(obj);
+    return qName != null ? qName : fallback.getFragment(obj);
   }
 
   public EObject getEObject(Resource resource, 
