@@ -334,7 +334,7 @@ public class SequenceFeeder {
 
 	protected void assertAction(Action action) {
 		if (action.getFeature() == null)
-			new RuntimeException("Only assigned actions are allowed.");
+			throw new RuntimeException("Only assigned actions are allowed.");
 	}
 
 	protected void assertIndex(EStructuralFeature feature) {
@@ -449,6 +449,8 @@ public class SequenceFeeder {
 					errorAcceptor);
 		else if (GrammarUtil.isEObjectRuleCall(rc))
 			return null;
+		else if (GrammarUtil.isEnumRuleCall(rc))
+			return provider.enumLiteralSerializer.serializeAssignedEnumLiteral(semanticObject, rc, value, node, errorAcceptor);
 		else
 			return provider.valueSerializer.serializeAssignedValue(semanticObject, rc, value, node, errorAcceptor);
 	}

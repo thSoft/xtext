@@ -7,11 +7,11 @@ import org.eclipse.xtext.xbase.featurecalls.IdentifiableSimpleNameProvider;
 @SuppressWarnings("all")
 public class DomainmodelIdentifiableSimpleNameProvider extends IdentifiableSimpleNameProvider {
   
-  public String _getSimpleName(final JvmType element) {
+  protected String _getSimpleName(final JvmType element) {
     return "this";
   }
   
-  public String _getSimpleName(final JvmIdentifiableElement element) {
+  protected String _getSimpleName(final JvmIdentifiableElement element) {
     String _simpleName = super.getSimpleName(element);
     return _simpleName;
   }
@@ -22,7 +22,8 @@ public class DomainmodelIdentifiableSimpleNameProvider extends IdentifiableSimpl
     } else if ((element instanceof JvmIdentifiableElement)) {
       return _getSimpleName((JvmIdentifiableElement)element);
     } else {
-      throw new IllegalArgumentException();
+      throw new IllegalArgumentException("Unhandled parameter types: " +
+        java.util.Arrays.<Object>asList(element).toString());
     }
   }
 }

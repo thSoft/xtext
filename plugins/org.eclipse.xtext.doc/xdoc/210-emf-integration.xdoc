@@ -2,8 +2,8 @@ chapter:emf_integration[Integration with EMF and Other EMF Editors]
 
 Xtext relies heavily on EMF internally, but it can also be used as the serialization back-end of 
 other EMF-based tools. In this section we introduce the basic concepts of the 
-link[http://www.eclipse.org/emf][Eclipse Modeling Framework (EMF)] in the context of Xtext.  
-If you want to learn more about EMF, we recommend reading the link[http://www.eclipse.org/emf.][EMF book]
+link[http://www.eclipse.org/modeling/emf/][Eclipse Modeling Framework (EMF)] in the context of Xtext.  
+If you want to learn more about EMF, we recommend reading the link[http://www.eclipse.org/modeling/emf/][EMF book].
 
 
 section:model_metamodel[Model, Ecore Model, and Ecore]
@@ -58,7 +58,7 @@ Other than associations in UML, EReferences in Ecore are always owned by one ECl
 direction form the owner to the type. Bi-directional associations must be modeled as two references, being 
 e[eOpposite] of each other and owned by either end of the associations.
 
-The superclass of EAttibutes and EReferences is e[EStructuralFeature] and allows to define a name and a 
+The superclass of EAttributes and EReferences is e[EStructuralFeature] and allows to define a name and a 
 cardinality by setting e[lowerBound] and e[upperBound]. Setting the latter to -1 means 'unbounded'. 
 
 The common supertype of EDataType and EClass is e[EClassifier]. An codeRef[org.eclipse.emf.ecore.EPackage] acts as a namespace and 
@@ -119,8 +119,8 @@ default XMI serialization, e.g.
 ul[
 	item[You can use well-known and easy-to-use tools and techniques for manipulation, such as text
 		editors, regular expressions, or stream editors.]
-	item[You can use the same tools for version control as you use for source code. Merging and 
-		diffing is performed in a syntax the developer is familiar with.]
+	item[You can use the same tools for version control as you use for source code. Comparing and 
+		merging is performed in a syntax the developer is familiar with.]
 	item[It is impossible to break the model such that it cannot be reopened in the editor again.]
 	item[Models can be fixed using the same tools, even if they have become incompatible with a 
 		new version of the Ecore model.]
@@ -154,7 +154,7 @@ ul[
 	item[Register an codeRef[org.eclipse.xtext.parser.antlr.IReferableElementsUnloader] to turn 
 		deleted/replaced model elements into EMF proxies. Design the rest 
 		of your application such that it does never keep references to 
-		codeRef[org.eclipse.emf.ecore.EObject]s or to cope with proxies. That will improve the 
+		codeRef[org.eclipse.emf.ecore.EObject][EObjects] or to cope with proxies. That will improve the 
 		stability of your application drastically.]
 	item[Xtext will register an EMF codeRef[org.eclipse.emf.ecore.resource.Resource$Factory], so resources with 
 		the file extension you entered when generating the Xtext plug-ins 
@@ -198,7 +198,7 @@ section2:gmf_integration_stage_1[Stage 1: Make GMF Read and Write the Semantic M
 
 A diagram editor in GMF by default manages two resources: One for the semantic model, that is the 
 model we're actually interested in for further processing. In our example it is a model representing 
-entities and datatypes. The second resource holds the notation model. It represents the shapes you 
+entities and data types. The second resource holds the notation model. It represents the shapes you 
 see in the diagram and their graphical properties. Notation elements reference their semantic 
 counterparts. An entity's name would be in the semantic model, while the font to draw it in the 
 diagram would be stored the notation model. Note that in the integration example we're only trying 
@@ -212,7 +212,7 @@ stuff that the user wants to change to make the diagram look better.
 
 In an Xtext editor, changes in the text are transfered to the underlying 
 codeRef[org.eclipse.xtext.resource.XtextResource] by a call to the method 
-codeRef[org.eclipse.xtext.resource.XtextResource]e[.update(int, int, String)], which will trigger a
+codeRef[org.eclipse.xtext.resource.XtextResource][XtextResource.update(int, int, String)], which will trigger a
 partial parsing of the dirty text region and a replacement of the corresponding subtree in the AST model 
 (semantic model). 
 
@@ -245,7 +245,7 @@ validator from Xtext is already integrated in the diagram editor via the menu ba
 section3[Stage 2: Calling the Xtext Parser to Parse GMF Labels]
 
 GMF's generated parser for the labels is a bit poor: It will work on attributes only, and will fail for 
-cross-references, e.g. an attibute's type. So why not use the Xtext parser to process the user's input? 
+cross-references, e.g. an attribute's type. So why not use the Xtext parser to process the user's input? 
 
 An codeRef[org.eclipse.xtext.resource.XtextResource] keeps track of it's concrete syntax representation by 
 means of a so called node model (see ref:parser_rules for a more detailed description). The node model 
@@ -268,7 +268,7 @@ have to add a line
 code[Java][XtextNodeModelReconciler.adapt(editingDomain);
 ]
 
-in the method e[createEditingDomain()] of the generated e[EntitiesDocumentProvider]. To avoid changing the 
+in the method code[Java][createEditingDomain()] of the generated e[EntitiesDocumentProvider]. To avoid changing the 
 generated code, you can modify the code generation template for that class by setting
 
 code[Java][Dynamic Templates -> true
