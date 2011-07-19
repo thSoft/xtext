@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (C) 2011, Dennis H&uuml;bner All rights reserved. This program 
+	and the accompanying materials are made available under the terms of the 
+	Eclipse Public License v1.0 which accompanies this distribution, and is available 
+	at http://www.eclipse.org/legal/epl-v10.html -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<prerequisites>
+		<maven>3.0</maven>
+	</prerequisites>
+
+	<groupId>org.eclipse.xtext</groupId>
+	<artifactId>org.eclipse.xtext.xtext-parent</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<name>Xtext Tycho Parent</name>
+
+	<mailingLists>
+		<mailingList>
+			<name>xtext-dev Mailing List</name>
+			<post>xtext-dev@eclipse.org</post>
+			<subscribe>https://dev.eclipse.org/mailman/listinfo/xtext-dev</subscribe>
+			<unsubscribe>https://dev.eclipse.org/mailman/listinfo/xtext-dev</unsubscribe>
+		</mailingList>
+	</mailingLists>
+
+	<issueManagement>
+		<url>https://bugs.eclipse.org/bugs/buglist.cgi?query_format=advanced;;component=Xtext;product=TMF;classification=Modeling</url>
+		<system>Bugzilla</system>
+	</issueManagement>
+
+	<licenses>
+		<license>
+			<name>Eclipse Public License v1.0</name>
+			<comments>
+       All rights reserved.
+
+       This program and the accompanying materials are made
+       available under the terms of the Eclipse Public License v1.0
+       which accompanies this distribution, and is available at
+       http://www.eclipse.org/legal/epl-v10.htm
+      </comments>
+		</license>
+	</licenses>
+
+	<properties>
+		<xtext-version>2.0.1-SNAPSHOT</xtext-version>
+		<tycho-version>0.12.0</tycho-version>
+		<junit-version>4.8.1</junit-version>
+
+		<mwe.p2.repository>http://download.eclipse.org/modeling/m2t/xpand/updates/nightly</mwe.p2.repository>
+		<xpand.p2.repository>http://download.eclipse.org/modeling/emft/mwe/updates/nightly</xpand.p2.repository>
+		<orbit.p2.repository>http://download.eclipse.org/tools/orbit/downloads/drops/R20110523182458/repository</orbit.p2.repository>
+
+		<signer-input-directory>/home/data/httpd/download-staging.priv/egit</signer-input-directory>
+		<download-publish-path>/home/data/httpd/download.eclipse.org/egit/updates-nightly</download-publish-path>
+	</properties>
+
+	<profiles>
+		<profile>
+			<id>platform-galileo</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>platform-version-name</name>
+					<value>galileo</value>
+				</property>
+			</activation>
+			<properties>
+				<eclipse-site>http://download.eclipse.org/releases/galileo</eclipse-site>
+				<platform-version>[3.5,3.6)</platform-version>
+			</properties>
+		</profile>
+		<profile>
+			<id>platform-helios</id>
+			<activation>
+				<property>
+					<name>platform-version-name</name>
+					<value>helios</value>
+				</property>
+			</activation>
+			<properties>
+				<eclipse-site>http://download.eclipse.org/releases/helios</eclipse-site>
+				<platform-version>[3.6,3.7)</platform-version>
+			</properties>
+		</profile>
+		<profile>
+			<id>platform-indigo</id>
+			<activation>
+				<property>
+					<name>platform-version-name</name>
+					<value>indigo</value>
+				</property>
+			</activation>
+			<properties>
+				<eclipse-site>http://download.eclipse.org/releases/indigo</eclipse-site>
+				<platform-version>[3.7,3.8)</platform-version>
+			</properties>
+		</profile>
+	</profiles>
+
+	<modules>
+		<!-- Features -->
+		<module>../../features/org.eclipse.xtext.runtime.feature</module>
+		<module>../../features/org.eclipse.xtext.ui.feature</module>
+		<module>../../features/org.eclipse.xtext.xbase.feature</module>
+		<module>../../features/org.eclipse.xtext.xtend2.sdk.feature</module>
+		<module>../../features/org.eclipse.xtext.xtext.ui.feature</module>
+		<module>../../features/org.eclipse.xtext.sdk.feature</module>
+		<module>../../features/org.eclipse.xtext.docs.feature</module>
+		<module>../../features/org.eclipse.xtext.examples.feature</module>
+		<module>../../features/org.eclipse.xtext.tests.feature</module>
+
+		<!-- Regular Plugins -->
+		<module>../../plugins/org.eclipse.xtext</module>
+		<module>../../plugins/org.eclipse.xtext.activities</module>
+		<module>../../plugins/org.eclipse.xtext.builder</module>
+		<module>../../plugins/org.eclipse.xtext.common.types</module>
+		<module>../../plugins/org.eclipse.xtext.common.types.shared</module>
+		<module>../../plugins/org.eclipse.xtext.common.types.ui</module>
+		<module>../../plugins/org.eclipse.xtext.doc</module>
+		<module>../../plugins/org.eclipse.xtext.ecore</module>
+		<module>../../plugins/org.eclipse.xtext.generator</module>
+		<module>../../plugins/org.eclipse.xtext.junit</module>
+		<module>../../plugins/org.eclipse.xtext.junit4</module>
+		<module>../../plugins/org.eclipse.xtext.logging</module>
+		<module>../../plugins/org.eclipse.xtext.purexbase</module>
+		<module>../../plugins/org.eclipse.xtext.purexbase.ui</module>
+		<module>../../plugins/org.eclipse.xtext.ui</module>
+		<module>../../plugins/org.eclipse.xtext.ui.codetemplates</module>
+		<module>../../plugins/org.eclipse.xtext.ui.codetemplates.ui</module>
+		<module>../../plugins/org.eclipse.xtext.ui.ecore</module>
+		<module>../../plugins/org.eclipse.xtext.ui.junit</module>
+		<module>../../plugins/org.eclipse.xtext.ui.shared</module>
+		<module>../../plugins/org.eclipse.xtext.util</module>
+		<module>../../plugins/org.eclipse.xtext.wikitext.core</module>
+		<module>../../plugins/org.eclipse.xtext.xbase</module>
+		<module>../../plugins/org.eclipse.xtext.xbase.junit</module>
+		<module>../../plugins/org.eclipse.xtext.xbase.lib</module>
+		<module>../../plugins/org.eclipse.xtext.xbase.ui</module>
+		<module>../../plugins/org.eclipse.xtext.xtend2</module>
+		<module>../../plugins/org.eclipse.xtext.xtend2.lib</module>
+		<module>../../plugins/org.eclipse.xtext.xtend2.ui</module>
+		<module>../../plugins/org.eclipse.xtext.xtext.ui</module>
+		<module>../../plugins/org.eclipse.xtext.xtext.ui.graph</module>
+
+		<!-- Tests -->
+		<module>../../tests/org.eclipse.xtext.builder.tests</module>
+		<module>../../tests/org.eclipse.xtext.common.types.tests</module>
+		<module>../../tests/org.eclipse.xtext.purexbase.tests</module>
+		<module>../../tests/org.eclipse.xtext.testlanguages</module>
+		<module>../../tests/org.eclipse.xtext.testlanguages.ui</module>
+		<module>../../tests/org.eclipse.xtext.tests</module>
+		<module>../../tests/org.eclipse.xtext.ui.tests</module>
+		<module>../../tests/org.eclipse.xtext.wikitext.tests</module>
+		<module>../../tests/org.eclipse.xtext.xbase.tests</module>
+		<module>../../tests/org.eclipse.xtext.xbase.ui.tests</module>
+		<module>../../tests/org.eclipse.xtext.xtend2.tests</module>
+		<module>../../tests/org.eclipse.xtext.xtend2.ui.tests</module>
+		<module>../../tests/org.eclipse.xtext.xtext.ui.graph.tests</module>
+		<module>../../tests/org.eclipse.xtext.xtext.ui.tests</module>
+
+		<!-- Examples -->
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.arithmetics</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.arithmetics.tests</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.arithmetics.ui</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.css</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.css.rendering</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.css.tests</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.css.ui</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.domainmodel</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.domainmodel.tests</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.domainmodel.ui</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.ecoredsl</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.ecoredsl.ui</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.fowlerdsl</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.fowlerdsl.ui</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.gmf</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.gmf.diagram</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.gmf.diagram.extensions</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.gmf.edit</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.gmf.ui</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.xbase.tutorial</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.xtend.tutorial</module>
+		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.gmf.glue</module>
+	</modules>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>maven.eclipse.org</id>
+			<url>http://maven.eclipse.org/nexus/content/repositories/milestone-indigo</url>
+		</pluginRepository>
+		<!-- TODO: need 1.0.1.2-SNAPSHOT of the signing plugin until bugfix for 
+			https://bugs.eclipse.org/bugs/show_bug.cgi?id=347591 is available in maven.eclipse.org -->
+		<pluginRepository>
+			<id>intalio-dash-signing-plugin</id>
+			<url>http://intalio.org/public/maven2</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<repositories>
+		<repository>
+			<id>eclipse-platform</id>
+			<layout>p2</layout>
+			<url>${eclipse-site}</url>
+		</repository>
+		<repository>
+			<id>mwe</id>
+			<layout>p2</layout>
+			<url>${mwe.p2.repository}</url>
+		</repository>
+		<repository>
+			<id>xpand</id>
+			<layout>p2</layout>
+			<url>${xpand.p2.repository}</url>
+		</repository>
+		<repository>
+			<id>orbit</id>
+			<layout>p2</layout>
+			<url>${orbit.p2.repository}</url>
+		</repository>
+	</repositories>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-maven-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<extensions>true</extensions>
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>target-platform-configuration</artifactId>
+				<version>${tycho-version}</version>
+				<configuration>
+					<resolver>p2</resolver>
+					<pomDependencies>consider</pomDependencies>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-source-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<executions>
+					<execution>
+						<id>plugin-source</id>
+						<goals>
+							<goal>plugin-source</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.eclipse.tycho</groupId>
+					<artifactId>tycho-compiler-plugin</artifactId>
+					<version>${tycho-version}</version>
+					<configuration>
+						<encoding>UTF-8</encoding>
+					</configuration>
+				</plugin>
+				<plugin>
+					<!-- TODO remove workaround when https://issues.sonatype.org/browse/TYCHO-473 
+						is fixed -->
+					<groupId>org.eclipse.tycho</groupId>
+					<artifactId>tycho-source-plugin</artifactId>
+					<version>${tycho-version}</version>
+					<executions>
+						<execution>
+							<id>attach-source</id>
+							<phase>process-classes</phase>
+							<goals>
+								<goal>plugin-source</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>2.4.1</version>
+					<configuration>
+						<encoding>ISO-8859-1</encoding>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-antrun-plugin</artifactId>
+					<version>1.3</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-assembly-plugin</artifactId>
+					<version>2.2-beta-4</version>
+				</plugin>
+				<plugin>
+					<groupId>org.eclipse.dash.maven</groupId>
+					<artifactId>eclipse-maven-signing-plugin</artifactId>
+					<!-- TODO: need 1.0.1.2-SNAPSHOT of the signing plugin until bugfix 
+						for https://bugs.eclipse.org/bugs/show_bug.cgi?id=347591 is available in 
+						maven.eclipse.org -->
+					<version>1.0.1.2-SNAPSHOT</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>${junit-version}</version>
+				<scope>test</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+</project>
+

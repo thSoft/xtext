@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.eclipse.xtext</groupId>
+  <artifactId>contents</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <modules>
+    <module>org.eclipse.xtext.example.arithmetics</module>
+    <module>org.eclipse.xtext.example.arithmetics.tests</module>
+    <module>org.eclipse.xtext.example.arithmetics.ui</module>
+    <module>org.eclipse.xtext.example.css</module>
+    <module>org.eclipse.xtext.example.css.rendering</module>
+    <module>org.eclipse.xtext.example.css.tests</module>
+    <module>org.eclipse.xtext.example.css.ui</module>
+    <module>org.eclipse.xtext.example.domainmodel</module>
+    <module>org.eclipse.xtext.example.domainmodel.tests</module>
+    <module>org.eclipse.xtext.example.domainmodel.ui</module>
+    <module>org.eclipse.xtext.example.ecoredsl</module>
+    <module>org.eclipse.xtext.example.ecoredsl.ui</module>
+    <module>org.eclipse.xtext.example.fowlerdsl</module>
+    <module>org.eclipse.xtext.example.fowlerdsl.ui</module>
+    <module>org.eclipse.xtext.example.gmf</module>
+    <module>org.eclipse.xtext.example.gmf.diagram</module>
+    <module>org.eclipse.xtext.example.gmf.diagram.extensions</module>
+    <module>org.eclipse.xtext.example.gmf.edit</module>
+    <module>org.eclipse.xtext.example.gmf.ui</module>
+    <module>org.eclipse.xtext.example.xbase.tutorial</module>
+    <module>org.eclipse.xtext.example.xtend.tutorial</module>
+    <module>org.eclipse.xtext.gmf.glue</module>
+  </modules>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.eclipse.tycho</groupId>
+        <artifactId>tycho-maven-plugin</artifactId>
+        <version>0.12.0</version>
+        <extensions>true</extensions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

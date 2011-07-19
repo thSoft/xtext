@@ -8,7 +8,7 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <groupId>org.eclipse.xtext</groupId>
-  <artifactId>org.eclipse.xtext</artifactId>
-  
+  <artifactId>org.eclipse.xtext.logging</artifactId>
+  <version>1.2.15-SNAPSHOT</version>
   <packaging>eclipse-plugin</packaging>
 </project>

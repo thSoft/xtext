@@ -3,12 +3,12 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>plugins</artifactId>
+    <artifactId>contents</artifactId>
     <groupId>org.eclipse.xtext</groupId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <groupId>org.eclipse.xtext</groupId>
-  <artifactId>org.eclipse.xtext</artifactId>
-  
-  <packaging>eclipse-plugin</packaging>
+  <artifactId>org.eclipse.xtext.example.domainmodel.tests</artifactId>
+  <version>1.0.0</version>
+  <packaging>eclipse-test-plugin</packaging>
 </project>

@@ -8,7 +8,7 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <groupId>org.eclipse.xtext</groupId>
-  <artifactId>org.eclipse.xtext</artifactId>
-  
+  <artifactId>org.eclipse.xtext.wikitext.core</artifactId>
+  <version>1.1.1-SNAPSHOT</version>
   <packaging>eclipse-plugin</packaging>
 </project>
