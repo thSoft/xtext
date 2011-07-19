@@ -17,6 +17,7 @@ import org.eclipse.xtext.AbstractElement;
 import org.eclipse.xtext.AbstractRule;
 import org.eclipse.xtext.Alternatives;
 import org.eclipse.xtext.Assignment;
+import org.eclipse.xtext.EnumLiteralDeclaration;
 import org.eclipse.xtext.Grammar;
 import org.eclipse.xtext.GrammarUtil;
 import org.eclipse.xtext.Group;
@@ -52,7 +53,8 @@ public class Xtext2RailroadFactory {
 	public ISegmentFigure createNodeSegment(Keyword keyword) {
 		NodeSegment nodeSegment = new NodeSegment(keyword, NodeType.RECTANGLE, keyword.getValue(), primitiveFactory,
 				getTextRegion(keyword));
-		return wrapCardinalitySegments(keyword, nodeSegment);
+		Assignment containingAssignment = GrammarUtil.containingAssignment(keyword);
+		return wrapCardinalitySegments(containingAssignment != null ? containingAssignment :keyword, nodeSegment);
 	}
 
 	public ISegmentFigure createNodeSegment(RuleCall ruleCall) {
@@ -60,6 +62,14 @@ public class Xtext2RailroadFactory {
 				primitiveFactory, getTextRegion(ruleCall));
 		Assignment containingAssignment = GrammarUtil.containingAssignment(ruleCall);
 		return wrapCardinalitySegments(containingAssignment != null ? containingAssignment :ruleCall, nodeSegment);
+	}
+	
+	public ISegmentFigure createNodeSegment(EnumLiteralDeclaration enumLiteralDeclaration) {
+		String literalName = (enumLiteralDeclaration.getLiteral() != null) ?
+				enumLiteralDeclaration.getLiteral().getValue() : enumLiteralDeclaration.getEnumLiteral().getName();
+		NodeSegment nodeSegment = new NodeSegment(enumLiteralDeclaration, NodeType.RECTANGLE, literalName, primitiveFactory,
+				getTextRegion(enumLiteralDeclaration));
+		return nodeSegment;
 	}
 
 	public ISegmentFigure createNodeSegment(EObject grammarElement, Throwable throwable) {

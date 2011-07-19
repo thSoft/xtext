@@ -242,6 +242,8 @@ public interface IGrammarConstraintProvider {
 
 		IConstraintElement[] getAssignments();
 
+		List<EObject> getCalledContexts();
+
 		IConstraint getContainingConstraint();
 
 		EStructuralFeature getFeature();
@@ -281,12 +283,12 @@ public interface IGrammarConstraintProvider {
 		SAME,
 
 		/**
-		 * a => b
+		 * a >= b
 		 */
 		SAME_OR_MORE,
 
 		/**
-		 * a => b
+		 * a <= b
 		 */
 		SAME_OR_LESS
 	}

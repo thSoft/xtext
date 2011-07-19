@@ -32,6 +32,7 @@ public class IssueCodes {
 	public static final String INVALID_EARLY_EXIT = ISSUE_CODE_PREFIX + "invalid_early_exit";
 	public static final String INVALID_INNER_EXPRESSION = ISSUE_CODE_PREFIX + "invalid_inner_expression";
 	public static final String INVALID_INSTANCEOF = ISSUE_CODE_PREFIX + "invalid_instanceof";
+	public static final String INVALID_MUTABLE_VARIABLE_ACCESS = ISSUE_CODE_PREFIX + "invalid_mutable_variable_access";
 	public static final String INVALID_NUMBER_OF_ARGUMENTS = ISSUE_CODE_PREFIX + "invalid_number_of_arguments";
 	public static final String INVALID_NUMBER_OF_TYPE_ARGUMENTS = ISSUE_CODE_PREFIX + "invalid_number_of_type_arguments";
 	public static final String INVALID_USE_OF_TYPE = ISSUE_CODE_PREFIX + "invalid_use_of_void";
@@ -49,6 +50,8 @@ public class IssueCodes {
 	public static final String UNRESOLVABLE_PROXY = ISSUE_CODE_PREFIX + "unresolvable_proxy";
 	public static final String VARIABLE_NAME_SHADOWING = ISSUE_CODE_PREFIX + "variable_name_shadowing";
 	public static final String SIDE_EFFECT_FREE_EXPRESSION_IN_BLOCK = ISSUE_CODE_PREFIX + "side_effect_free_expression_in_block";
+	public static final String NULL_SAFE_FEATURE_CALL_ON_PRIMITIVE = ISSUE_CODE_PREFIX + "null_safe_feature_call_on_primitive";
+	
 	
 	// list is not necessarily complete
 	// list is sorted from least important issue to worst issue
@@ -56,6 +59,7 @@ public class IssueCodes {
 			FIELD_ACCESS_WITH_PARENTHESES,
 			LOCAL_VAR_ACCESS_WITH_PARENTHESES,
 			METHOD_ACCESS_WITHOUT_PARENTHESES,
+			INVALID_MUTABLE_VARIABLE_ACCESS,
 			ASSIGNMENT_TARGET_IS_NOT_WRITEABLE,
 			INSTANCE_ACCESS_TO_STATIC_MEMBER,
 			INVALID_NUMBER_OF_TYPE_ARGUMENTS,

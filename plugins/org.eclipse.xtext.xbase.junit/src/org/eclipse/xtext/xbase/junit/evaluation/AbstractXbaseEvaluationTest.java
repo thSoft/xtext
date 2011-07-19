@@ -1355,16 +1355,15 @@ public abstract class AbstractXbaseEvaluationTest extends TestCase {
 			"}");
 	}
 	
-	// TODO fix type parameter resolution in array types 
-//	@Test public void testBug342434_02() throws Exception {
-//		assertEvaluatesTo("baz", 
-//				"{\n" + 
-//				"    val x = newArrayList('foo','bar','baz').toArray\n" + 
-//				"    val arrayAccess = new testdata.ArrayClient2(x)\n" + 
-//				"    arrayAccess.set(1,arrayAccess.get(0))\n" + 
-//				"    return arrayAccess.get(2)\n" + 
-//		"}");
-//	}
+	@Test public void testBug342434_02() throws Exception {
+		assertEvaluatesTo("baz", 
+			"{\n" + 
+			"    val x = newArrayList('foo','bar','baz').toArray\n" + 
+			"    val arrayAccess = new testdata.ArrayClient2(x)\n" + 
+			"    arrayAccess.set(1,arrayAccess.get(0))\n" + 
+			"    return arrayAccess.get(2)\n" + 
+			"}");
+	}
 	
 	@Test public void testBug342434_03() throws Exception {
 		assertEvaluatesTo("foo", 
@@ -1384,6 +1383,49 @@ public abstract class AbstractXbaseEvaluationTest extends TestCase {
 			"}");
 	}
 	
+	@Test public void testBug342434_05() throws Exception {
+		assertEvaluatesTo("baz", 
+			"{\n" + 
+			"    val x = newArrayList('foo','bar','baz').toArray\n" + 
+			"    val arrayAccess = testdata::ArrayClient2::access(x)\n" + 
+			"    arrayAccess.set(1,arrayAccess.get(0))\n" + 
+			"    return arrayAccess.get(2)\n" + 
+			"}");
+	}
+	
+	@Test public void testBug349762_01() throws Exception {
+		assertEvaluatesTo(Boolean.TRUE, 
+			"try {\n" + 
+			"    throw new NullPointerException()\n" +
+			"} catch(Exception e) {\n" +
+			"    [Exception e2 | e==e2].apply(e)\n" + 
+			"}");
+	}
+	
+	@Test public void testBug349762_02() throws Exception {
+		assertEvaluatesTo("a", 
+				"switch s: 'abc' as CharSequence {\n" +
+				"  String: [Integer a, Integer b| s.substring(a, b)].apply(0, 1)\n" +
+				"}");
+	}
+	
+	@Test public void testBug347175() throws Exception {
+		assertEvaluatesTo(Boolean.FALSE, "(null as Boolean)?.booleanValue()");
+		assertEvaluatesTo(Byte.valueOf((byte)0), "(null as Byte)?.byteValue()");
+		assertEvaluatesTo(Character.valueOf((char)0), "(null as Character)?.charValue()");
+		assertEvaluatesTo(Short.valueOf((short)0), "(null as Short)?.shortValue()");
+		assertEvaluatesTo(Integer.valueOf(0), "(null as Integer)?.intValue()");
+		assertEvaluatesTo(Long.valueOf(0l), "(null as Long)?.longValue()");
+		assertEvaluatesTo(Float.valueOf(0f), "(null as Float)?.floatValue()");
+		assertEvaluatesTo(Double.valueOf(0.), "(null as Double)?.doubleValue()");
+	}
+	
+	@Test public void test351809() throws Exception {
+		assertEvaluatesTo(Boolean.FALSE, "{\n" +
+			"  val l = new java.util.ArrayList<String>()\n" + 
+			"  new java.util.ArrayList<CharSequence>() += l\n" +
+			"}");
+	}
 	
 	protected void assertEvaluatesTo(Object object, String string) throws Exception {
 		assertEquals(object, invokeXbaseExpression(string));

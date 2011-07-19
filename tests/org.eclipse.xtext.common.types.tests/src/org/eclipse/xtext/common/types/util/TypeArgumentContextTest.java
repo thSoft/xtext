@@ -22,6 +22,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMLResourceImpl;
 import org.eclipse.xtext.common.types.JvmArrayType;
 import org.eclipse.xtext.common.types.JvmDeclaredType;
+import org.eclipse.xtext.common.types.JvmGenericArrayTypeReference;
 import org.eclipse.xtext.common.types.JvmGenericType;
 import org.eclipse.xtext.common.types.JvmOperation;
 import org.eclipse.xtext.common.types.JvmParameterizedTypeReference;
@@ -31,6 +32,7 @@ import org.eclipse.xtext.common.types.JvmTypeReference;
 import org.eclipse.xtext.common.types.TypesFactory;
 import org.eclipse.xtext.common.types.access.IJvmTypeProvider;
 import org.eclipse.xtext.common.types.tests.ClasspathBasedModule;
+import org.eclipse.xtext.common.types.util.TypeArgumentContextProvider.ResolveInfo;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -46,6 +48,7 @@ public class TypeArgumentContextTest extends TestCase {
 
 	private IJvmTypeProvider typeProvider;
 	private JvmTypeReferences typeRefs;
+	
 	@Inject
 	private TypeArgumentContextProvider typeArgCtxProvider;
 	
@@ -85,11 +88,11 @@ public class TypeArgumentContextTest extends TestCase {
 		});
 		JvmTypeReference expected = typeRefs.typeReference("java.lang.Iterable").wildCardExtends("java.lang.String").create();
 		
-		Map<JvmTypeParameter, JvmTypeReference> map = typeArgCtxProvider.resolveInferredMethodTypeArgContext(operation, operation.getReturnType(), expected);
+		Map<JvmTypeParameter, ResolveInfo> map = typeArgCtxProvider.resolveInferredMethodTypeArgContext(operation, operation.getReturnType(), expected);
 		assertEquals(1,map.size());
 		// TODO discuss changed behavior due to recent modifications in typeArgumentContextProvider
 //		assertEquals("? extends java.lang.String",map.values().iterator().next().getIdentifier());
-		assertEquals("java.lang.String",map.values().iterator().next().getIdentifier());
+		assertEquals("java.lang.String",map.values().iterator().next().reference.getIdentifier());
 	}
 	
 	/**
@@ -104,9 +107,9 @@ public class TypeArgumentContextTest extends TestCase {
 		});
 		JvmTypeReference actualArg = typeRefs.typeReference("java.lang.String").create();
 		
-		Map<JvmTypeParameter, JvmTypeReference> map = typeArgCtxProvider.resolveInferredMethodTypeArgContext(operation, operation.getReturnType(), null, actualArg);
+		Map<JvmTypeParameter, ResolveInfo> map = typeArgCtxProvider.resolveInferredMethodTypeArgContext(operation, operation.getReturnType(), null, actualArg);
 		assertEquals(1,map.size());
-		assertEquals("java.lang.String",map.values().iterator().next().getIdentifier());
+		assertEquals("java.lang.String",map.values().iterator().next().reference.getIdentifier());
 	}
 	
 	/**
@@ -123,11 +126,32 @@ public class TypeArgumentContextTest extends TestCase {
 		JvmTypeReference actualArg = typeRefs.typeReference("java.util.List").wildCardExtends("java.lang.String").create();
 		JvmTypeReference expectation = typeRefs.typeReference("java.lang.Object").create();
 		
-		Map<JvmTypeParameter, JvmTypeReference> map = typeArgCtxProvider.resolveInferredMethodTypeArgContext(operation, operation.getReturnType(), expectation, actualArg);
+		Map<JvmTypeParameter, ResolveInfo> map = typeArgCtxProvider.resolveInferredMethodTypeArgContext(operation, operation.getReturnType(), expectation, actualArg);
+		assertEquals(map.toString(), 1, map.size());
+		assertEquals("java.lang.String", map.values().iterator().next().reference.getIdentifier());
+	}
+	
+	/**
+	 * test case: ''foo,bar,baz'.split(',').getFirst()"
+	 * https://bugs.eclipse.org/bugs/show_bug.cgi?id=347656
+	 */
+	public void testInferredMethodContext_03() throws Exception {
+		JvmParameterizedTypeReference lists = typeRefs.typeReference(Iterables.class.getCanonicalName()).create();
+		JvmOperation operation = find(((JvmDeclaredType)lists.getType()).getDeclaredOperations(), new Predicate<JvmOperation>(){
+			public boolean apply(JvmOperation input) {
+				return input.getSimpleName().equals("getLast");
+			}
+		});
+		JvmArrayType arrayType = TypesFactory.eINSTANCE.createJvmArrayType();
+		arrayType.setComponentType(typeRefs.typeReference("java.lang.String").create());
+		TypesFactory.eINSTANCE.createJvmGenericArrayTypeReference().setType(arrayType);
+		JvmGenericArrayTypeReference actualArg = TypesFactory.eINSTANCE.createJvmGenericArrayTypeReference();
+		actualArg.setType(arrayType);
+		JvmTypeReference expectation = typeRefs.typeReference("java.lang.String").create();
+		
+		Map<JvmTypeParameter, ResolveInfo> map = typeArgCtxProvider.resolveInferredMethodTypeArgContext(operation, null, expectation, actualArg);
 		assertEquals(1,map.size());
-		// TODO discuss changed behavior due to recent modifications in typeArgumentContextProvider
-//		assertEquals("? extends java.lang.String",map.values().iterator().next().getIdentifier());
-		assertEquals("java.lang.String",map.values().iterator().next().getIdentifier());
+		assertEquals("java.lang.String", map.values().iterator().next().reference.getIdentifier());
 	}
 	
 	public void testSimple() throws Exception {

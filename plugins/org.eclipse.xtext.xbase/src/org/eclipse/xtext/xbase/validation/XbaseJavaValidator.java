@@ -456,8 +456,10 @@ public class XbaseJavaValidator extends AbstractXbaseJavaValidator {
 	public void checkTypeGuards(XCasePart casePart) {
 		if (casePart.getTypeGuard()==null)
 			return;
-		JvmTypeReference targetTypeRef = typeProvider.getType(((XSwitchExpression) casePart.eContainer()).getSwitch());
 		JvmTypeReference typeGuard = casePart.getTypeGuard();
+		if(primitives.isPrimitive(typeGuard)) 
+			error("Primitives are not allowed as type guards", Literals.XCASE_PART__TYPE_GUARD, INVALID_USE_OF_TYPE);
+		JvmTypeReference targetTypeRef = typeProvider.getType(((XSwitchExpression) casePart.eContainer()).getSwitch());
 		checkCast(typeGuard, targetTypeRef);
 	}
 
@@ -511,6 +513,13 @@ public class XbaseJavaValidator extends AbstractXbaseJavaValidator {
 	public void checkSpreadOperatorNotUsed(XMemberFeatureCall featureCall) {
 		if (featureCall.isSpreading()) {
 			error("The spreading operator is not yet supported.", featureCall, Literals.XMEMBER_FEATURE_CALL__SPREADING, "unssupported_spread_operator");
+		}
+	}
+	
+	@Check void checkNullSafeFeatureCallWithPrimitives(XMemberFeatureCall featureCall) {
+		if(featureCall.isNullSafe() && primitives.isPrimitive(typeProvider.getType(featureCall.getMemberCallTarget()))) {
+			error("Cannot use null safe feature call on primitive receiver", featureCall, Literals.XMEMBER_FEATURE_CALL__NULL_SAFE, 
+					NULL_SAFE_FEATURE_CALL_ON_PRIMITIVE);
 		}
 	}
 

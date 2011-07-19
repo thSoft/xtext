@@ -234,7 +234,41 @@ public class NfaToGrammarTest extends AbstractXtextTests {
 		assertEquals("start (x+ | y)? stop", nfa2g(start, stop));
 	}
 
-	public void testCycle() {
+	public void testAlternative7() {
+		S start = new S("start");
+		S stop = new S("stop");
+		S a = new S("a");
+		S b = new S("b");
+		S x = new S("x");
+		S y = new S("y");
+		start.add(a, b);
+		a.add(x, y);
+		b.add(x, y);
+		x.add(stop);
+		y.add(stop);
+		assertEquals("start (a | b) (x | y) stop", nfa2g(start, stop));
+	}
+
+	public void testAlternative8() {
+		S start = new S("start");
+		S stop = new S("stop");
+		S a = new S("a");
+		S b = new S("b");
+		S c = new S("c");
+		S d = new S("d");
+		S x = new S("x");
+		S y = new S("y");
+		start.add(a, b);
+		a.add(c, d);
+		b.add(c, d);
+		c.add(x, y);
+		d.add(x, y);
+		x.add(stop);
+		y.add(stop);
+		assertEquals("start (a | b) (c | d) (x | y) stop", nfa2g(start, stop));
+	}
+
+	public void testSplitStateCycle1() {
 		S start = new S("start");
 		S stop = new S("stop");
 		S x = new S("x");
@@ -243,6 +277,42 @@ public class NfaToGrammarTest extends AbstractXtextTests {
 		x.add(y, stop);
 		y.add(x);
 		assertEquals("start x (y x)* stop", nfa2g(start, stop));
+	}
+
+	public void testSplitStateAlternatives1() {
+		S start = new S("start");
+		S stop = new S("stop");
+		S b = new S("b");
+		S c = new S("c");
+		S d = new S("d");
+		S e = new S("e");
+		start.add(b, c);
+		b.add(d, e);
+		c.add(e);
+		d.add(stop);
+		e.add(stop);
+		assertEquals("start (b (d | e) | c e) stop", nfa2g(start, stop));
+	}
+
+	public void testSplitStateAlternatives2() {
+		S start = new S("start");
+		S stop = new S("stop");
+		S a = new S("a");
+		S b = new S("b");
+		S c = new S("c");
+		S d = new S("d");
+		S e = new S("e");
+		S f = new S("f");
+		S g = new S("g");
+		start.add(a, b);
+		a.add(c, d);
+		b.add(d, e);
+		c.add(f);
+		d.add(f, g);
+		e.add(g);
+		f.add(stop);
+		g.add(stop);
+		assertEquals("start ((a c f | b e g) | (a | b) d (f | g)) stop", nfa2g(start, stop));
 	}
 
 	public void testOptionalChain1() {

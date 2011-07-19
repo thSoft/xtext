@@ -18,14 +18,21 @@ Workflow {
 	bean = StandaloneSetup {
 		platformUri = "${runtimeProject}/../.."
 		registerGenModelFile = "platform:/resource/${projectName}/src/org/eclipse/xtext/grammarinheritance/ametamodel.genmodel"
+		registerGenModelFile = "platform:/resource/${projectName}/src/org/eclipse/xtext/generator/ecore/GenModelAccessTest.genmodel" 
 		registerGenModelFile = "platform:/resource/${projectName}/src/org/eclipse/xtext/generator/grammarAccess/ametamodel.genmodel"
 		registerGenModelFile = "platform:/resource/${projectName}/src/org/eclipse/xtext/enumrules/enums.genmodel"
-		registerGenModelFile = "platform:/resource/org.eclipse.xtext/src/org/eclipse/xtext/Xtext.genmodel" 
+		registerGenModelFile = "platform:/resource/org.eclipse.xtext/src/org/eclipse/xtext/Xtext.genmodel"
 	}
 	
 	component = DirectoryCleaner {
 		directory = "${runtimeProject}/src-gen"
 	}
+	
+	component = org.eclipse.emf.mwe2.ecore.EcoreGenerator {
+		genModel = "platform:/resource/org.eclipse.xtext.tests/src/org/eclipse/xtext/generator/ecore/GenModelAccessTest.genmodel"
+		srcPath = "foo"
+	}
+	component = org.eclipse.xtext.generator.ecore.GenModelAccessTestGenerator {}
 	
 	component = Generator {
 		mergeManifest = false
@@ -357,6 +364,11 @@ Workflow {
 		language = {
 			uri = "classpath:/org/eclipse/xtext/serializer/SyntacticSequencerTestLanguage.xtext"
 			fragment = @TestLanguagesFragments auto-inject {}
+			fragment = serializer.SerializerFragment {}
+		}
+		language = {
+			uri = "classpath:/org/eclipse/xtext/serializer/ContextFinderTestLanguage.xtext"
+			fragment = @ TestLanguagesFragments auto-inject {}
 			fragment = serializer.SerializerFragment {}
 		}
 		language = { 

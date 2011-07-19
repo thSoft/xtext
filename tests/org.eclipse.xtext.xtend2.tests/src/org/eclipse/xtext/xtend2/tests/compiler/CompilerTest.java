@@ -29,6 +29,8 @@ import org.eclipse.xtext.junit.util.ParseHelper;
 import org.eclipse.xtext.junit.validation.ValidationTestHelper;
 import org.eclipse.xtext.xbase.XbasePackage;
 import org.eclipse.xtext.xbase.compiler.OnTheFlyJavaCompiler.EclipseRuntimeDependentJavaCompiler;
+import org.eclipse.xtext.xbase.lib.Functions;
+import org.eclipse.xtext.xbase.lib.Functions.Function1;
 import org.eclipse.xtext.xbase.lib.StringExtensions;
 import org.eclipse.xtext.xtend2.compiler.Xtend2Compiler;
 import org.eclipse.xtext.xtend2.lib.StringConcatenation;
@@ -40,6 +42,7 @@ import test.ExtensionMethods;
 import testdata.Properties1;
 
 import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -69,6 +72,395 @@ public class CompilerTest extends AbstractXtend2TestCase {
 		javaCompiler.compileToClass("x.Z", javaCode);
 	}
 	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=345828
+	 */
+	public void testBug_345828_01() throws Exception {
+		String code = 
+			"package x\n" +
+			"class Z {" +
+			"  def <T extends =>Integer> baz(T t) {\n" +
+			"    val int i = t.apply\n" +
+			"    if (i == 0)\n" +
+			"      t.apply\n" + 
+			"    t.apply\n" + 
+			"  }\n" +
+			"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=345828
+	 */
+	public void testBug_345828_02() throws Exception {
+		String code = 
+				"package x\n" +
+				"import org.eclipse.xtext.xbase.lib.Functions\n" +
+				"class Z {" +
+				"  def <T extends Functions$Function0<Integer>> bar(T t) {\n" +
+				"    val int i = t.apply\n" +
+				"    if (i == 0)\n" +
+				"      t.apply\n" + 
+				"    t.apply\n" + 
+				"  }\n" +
+				"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=345828
+	 */
+	public void testBug_345828_03() throws Exception {
+		String code = 
+				"package x\n" +
+						"class Z {" +
+						"  def <MyParam extends =>Integer> baz(java.util.List<MyParam> t) {\n" +
+						"    val int i = t.head.apply\n" +
+						"    if (i == 0)\n" +
+						"      t.head.apply\n" + 
+						"    t.head.apply\n" + 
+						"  }\n" +
+						"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=345828
+	 */
+	public void testBug_345828_04() throws Exception {
+		String code = 
+				"package x\n" +
+						"import org.eclipse.xtext.xbase.lib.Functions\n" +
+						"class Z {" +
+						"  def <MyParam extends Functions$Function0<Integer>> bar(java.util.List<MyParam> t) {\n" +
+						"    val int i = t.head.apply\n" +
+						"    if (i == 0)\n" +
+						"      t.head.apply\n" + 
+						"    t.head.apply\n" + 
+						"  }\n" +
+						"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=345828
+	 */
+	public void testBug_345828_05() throws Exception {
+		String code = 
+				"package x\n" +
+						"class Z {" +
+						"  def <MyParam extends =>Integer> baz(java.util.List<MyParam> t) {\n" +
+						"    val int i = t.get(0).apply\n" +
+						"    if (i == 0)\n" +
+						"      t.iterator.next.apply\n" + 
+						"    t.get(0).apply\n" + 
+						"  }\n" +
+						"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=345828
+	 */
+	public void testBug_345828_06() throws Exception {
+		String code = 
+				"package x\n" +
+						"class Z {" +
+						"  def <MyParam extends =>Integer> baz(java.util.List<MyParam> t) {\n" +
+						"    val int i = t.<MyParam>head.apply + 1\n" +
+						"    if (i == 0)\n" +
+						"      t.<MyParam>head.apply + 1\n" + 
+						"    t.<MyParam>head.apply + 1\n" + 
+						"  }\n" +
+						"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=351330
+	 */
+	public void testBug_351330_01() throws Exception {
+		String code = 
+			"package x class Z {" +
+			"  def <T> toString(Iterable<T> i, (T)=>String toStringFunc, String separator){\n" + 
+			"    i.map(T x | toStringFunc.apply(x)).join(separator)\n" + 
+			"  }\n" +
+			"}\n";
+		String javaCode = compileToJavaCode(code);
+		Class<?> compiledClazz = javaCompiler.compileToClass("x.Z", javaCode);
+		Object instance = compiledClazz.newInstance();
+		Method method = compiledClazz.getDeclaredMethods()[0];
+		List<String> list = Lists.newArrayList("a", "b");
+		Function1<String, String> function = new Functions.Function1<String, String>() {
+			public String apply(String p) {
+				return p.toUpperCase();
+			}
+		};
+		String separator = ", ";
+		Object result = method.invoke(instance, list, function, separator);
+		assertEquals("A, B", result);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=351330
+	 */
+	public void testBug_351330_02() throws Exception {
+		String code = 
+			"package x class Z <T> {" +
+			"  def toSeparatedString(Iterable<T> i, (T)=>String toStringFunc, String separator){\n" + 
+			"    i.map(T x | toStringFunc.apply(x)).join(separator)\n" + 
+			"  }\n" +
+			"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=351330
+	 */
+	public void testBug_351330_03() throws Exception {
+		String code = 
+			"package x class Z <T> {" +
+			"  def toSeparatedString(Iterable<T> i, org.eclipse.xtext.xbase.lib.Functions$Function1<? extends T, String> toStringFunc, String separator){\n" + 
+			"    i.map(T x | x.toString).join(separator)\n" + 
+			"  }\n" +
+			"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=351330
+	 */
+	public void testBug_351330_04() throws Exception {
+		String code = 
+			"package x class Z <T> {" +
+			"  def toSeparatedString(Iterable<T> i, org.eclipse.xtext.xbase.lib.Functions$Function1<? super T, String> toStringFunc, String separator){\n" + 
+			"    i.map(T x | x.toString).join(separator)\n" + 
+			"  }\n" +
+			"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=351330
+	 */
+	public void testBug_351330_05() throws Exception {
+		String code = 
+			"package x class Z {" +
+			"  def <T> toSeparatedString(Iterable<T> i, org.eclipse.xtext.xbase.lib.Functions$Function1<? extends T, String> toStringFunc, String separator){\n" + 
+			"    i.map(T x | x.toString).join(separator)\n" + 
+			"  }\n" +
+			"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=351330
+	 */
+	public void testBug_351330_06() throws Exception {
+		String code = 
+			"package x class Z {" +
+			"  def <T> toSeparatedString(Iterable<T> i, org.eclipse.xtext.xbase.lib.Functions$Function1<? super T, String> toStringFunc, String separator){\n" + 
+			"    i.map(T x | x.toString).join(separator)\n" + 
+			"  }\n" +
+			"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=350932
+	 */
+	public void testBug_350932_01() throws Exception {
+		String code = 
+				"package x class Z {" +
+				"  def bug(){\n" + 
+				"    if (true) return false\n" + 
+				"  }\n" +
+				"  def invoke() {\n" +
+				"    val boolean b = bug\n" +
+				"  }\n" +
+				"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=350932
+	 */
+	public void testBug_350932_02() throws Exception {
+		String code = 
+				"package x class Z {" +
+				"  def bug(){\n" + 
+				"    if (true) return false false\n" + 
+				"  }\n" +
+				"  def invoke() {\n" +
+				"    val boolean b = bug\n" +
+				"  }\n" +
+				"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=350932
+	 */
+	public void testBug_350932_03() throws Exception {
+		String code = 
+				"package x class Z {" +
+				"  def bug(){\n" + 
+				"    if (true) return false else false\n" + 
+				"  }\n" +
+				"  def invoke() {\n" +
+				"    val boolean b = bug\n" +
+				"  }\n" +
+				"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=350932
+	 */
+	public void testBug_350932_04() throws Exception {
+		String code = 
+				"package x class Z {" +
+				"  def bug(){\n" + 
+				"    if (true) return false return false\n" + 
+				"  }\n" +
+				"  def invoke() {\n" +
+				"    val boolean b = bug\n" +
+				"  }\n" +
+				"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=350932
+	 */
+	public void testBug_350932_05() throws Exception {
+		String code = 
+				"package x class Z {" +
+				"  def bug(){\n" + 
+				"    if (true) return false else return false\n" + 
+				"  }\n" +
+				"  def invoke() {\n" +
+				"    val boolean b = bug\n" +
+				"  }\n" +
+				"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=350932
+	 */
+	public void testBug_350932_06() throws Exception {
+		String code = 
+				"package x class Z {" +
+				"  def bug(){\n" + 
+				"    [|if (true) return false].apply\n" + 
+				"  }\n" +
+				"  def invoke() {\n" +
+				"    val boolean b = bug\n" +
+				"  }\n" +
+				"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=350932
+	 */
+	public void testBug_350932_07() throws Exception {
+		String code = 
+				"package x class Z {" +
+				"  def bug(){\n" + 
+				"    [|{ if (true) return false false }].apply\n" + 
+				"  }\n" +
+				"  def invoke() {\n" +
+				"    val boolean b = bug\n" +
+				"  }\n" +
+				"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=350932
+	 */
+	public void testBug_350932_08() throws Exception {
+		String code = 
+				"package x class Z {" +
+				"  def bug(){\n" + 
+				"    [|if (true) return false else false].apply\n" + 
+				"  }\n" +
+				"  def invoke() {\n" +
+				"    val boolean b = bug\n" +
+				"  }\n" +
+				"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=350932
+	 */
+	public void testBug_350932_09() throws Exception {
+		String code = 
+				"package x class Z {" +
+				"  def bug(){\n" + 
+				"    [|{ if (true) return false return false }].apply\n" + 
+				"  }\n" +
+				"  def invoke() {\n" +
+				"    val boolean b = bug\n" +
+				"  }\n" +
+				"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=350932
+	 */
+	public void testBug_350932_10() throws Exception {
+		String code = 
+				"package x class Z {" +
+				"  def bug(){\n" + 
+				"    [|if (true) return false else return false].apply\n" + 
+				"  }\n" +
+				"  def invoke() {\n" +
+				"    val boolean b = bug\n" +
+				"  }\n" +
+				"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
+	
+	/**
+	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=351582
+	 */
+	public void testBug_351582_01() throws Exception {
+		String code = 
+				"package x class Z {" +
+				"  String s" +
+				"  def sorted(Iterable<Z> it){\n" + 
+				"    it.sortBy(z|z.s)\n" + 
+				"  }\n" +
+				"}\n";
+		String javaCode = compileToJavaCode(code);
+		javaCompiler.compileToClass("x.Z", javaCode);
+	}
 	
 	/**
 	 * see https://bugs.eclipse.org/bugs/show_bug.cgi?id=345371
