@@ -3,12 +3,12 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>releng</artifactId>
-    <groupId>org.eclipse.xtext</groupId>
+    <artifactId>plugins</artifactId>
+    <groupId>org.eclipse.xtext.plugins</groupId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <groupId>org.eclipse.xtext</groupId>
-  <artifactId>org.eclipse.xtext.releng</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <groupId>org.eclipse.xtext.plugins</groupId>
+  <artifactId>org.antlr.runtime</artifactId>
+  <version>3.2.0</version>
   <packaging>eclipse-plugin</packaging>
 </project>

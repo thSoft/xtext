@@ -4,10 +4,10 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <artifactId>tests</artifactId>
-    <groupId>org.eclipse.xtext</groupId>
+    <groupId>org.eclipse.xtext.tests</groupId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <groupId>org.eclipse.xtext</groupId>
+  <groupId>org.eclipse.xtext.tests</groupId>
   <artifactId>org.eclipse.xtext.wikitext.tests</artifactId>
   <version>1.1.1-SNAPSHOT</version>
   <packaging>eclipse-test-plugin</packaging>

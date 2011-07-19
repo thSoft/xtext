@@ -52,12 +52,13 @@
 		<tycho-version>0.12.0</tycho-version>
 		<junit-version>4.8.1</junit-version>
 
-		<mwe.p2.repository>http://download.eclipse.org/modeling/m2t/xpand/updates/nightly</mwe.p2.repository>
-		<xpand.p2.repository>http://download.eclipse.org/modeling/emft/mwe/updates/nightly</xpand.p2.repository>
-		<orbit.p2.repository>http://download.eclipse.org/tools/orbit/downloads/drops/R20110523182458/repository</orbit.p2.repository>
+		<eclipse.download>http://download.eclipse.org</eclipse.download>
+		<mwe.p2.repository>${eclipse.download}/modeling/m2t/xpand/updates/nightly</mwe.p2.repository>
+		<xpand.p2.repository>${eclipse.download}/modeling/emft/mwe/updates/nightly</xpand.p2.repository>
+		<orbit.p2.repository>${eclipse.download}/tools/orbit/downloads/drops/R20110523182458/repository</orbit.p2.repository>
 
-		<signer-input-directory>/home/data/httpd/download-staging.priv/egit</signer-input-directory>
-		<download-publish-path>/home/data/httpd/download.eclipse.org/egit/updates-nightly</download-publish-path>
+		<!-- <signer-input-directory>/home/data/httpd/download-staging.priv/xtext</signer-input-directory> 
+			<download-publish-path>/home/data/httpd/download.eclipse.org/egit/updates-nightly</download-publish-path> -->
 	</properties>
 
 	<profiles>
@@ -71,8 +72,9 @@
 				</property>
 			</activation>
 			<properties>
-				<eclipse-site>http://download.eclipse.org/releases/galileo</eclipse-site>
+				<eclipse.p2.repository>${eclipse.download}/releases/galileo</eclipse.p2.repository>
 				<platform-version>[3.5,3.6)</platform-version>
+				<emf.p2.repository>${eclipse.download}/modeling/emf/updates</emf.p2.repository>
 			</properties>
 		</profile>
 		<profile>
@@ -84,7 +86,7 @@
 				</property>
 			</activation>
 			<properties>
-				<eclipse-site>http://download.eclipse.org/releases/helios</eclipse-site>
+				<eclipse.p2.repository>${eclipse.download}/releases/helios</eclipse.p2.repository>
 				<platform-version>[3.6,3.7)</platform-version>
 			</properties>
 		</profile>
@@ -97,96 +99,14 @@
 				</property>
 			</activation>
 			<properties>
-				<eclipse-site>http://download.eclipse.org/releases/indigo</eclipse-site>
+				<eclipse.p2.repository>${eclipse.download}/releases/indigo</eclipse.p2.repository>
 				<platform-version>[3.7,3.8)</platform-version>
+				<emf.p2.repository>${eclipse.download}/modeling/emf/emf/updates/2.7milestones</emf.p2.repository>
 			</properties>
 		</profile>
 	</profiles>
 
 	<modules>
-		<!-- Features -->
-		<module>../../features/org.eclipse.xtext.runtime.feature</module>
-		<module>../../features/org.eclipse.xtext.ui.feature</module>
-		<module>../../features/org.eclipse.xtext.xbase.feature</module>
-		<module>../../features/org.eclipse.xtext.xtend2.sdk.feature</module>
-		<module>../../features/org.eclipse.xtext.xtext.ui.feature</module>
-		<module>../../features/org.eclipse.xtext.sdk.feature</module>
-		<module>../../features/org.eclipse.xtext.docs.feature</module>
-		<module>../../features/org.eclipse.xtext.examples.feature</module>
-		<module>../../features/org.eclipse.xtext.tests.feature</module>
-
-		<!-- Regular Plugins -->
-		<module>../../plugins/org.eclipse.xtext</module>
-		<module>../../plugins/org.eclipse.xtext.activities</module>
-		<module>../../plugins/org.eclipse.xtext.builder</module>
-		<module>../../plugins/org.eclipse.xtext.common.types</module>
-		<module>../../plugins/org.eclipse.xtext.common.types.shared</module>
-		<module>../../plugins/org.eclipse.xtext.common.types.ui</module>
-		<module>../../plugins/org.eclipse.xtext.doc</module>
-		<module>../../plugins/org.eclipse.xtext.ecore</module>
-		<module>../../plugins/org.eclipse.xtext.generator</module>
-		<module>../../plugins/org.eclipse.xtext.junit</module>
-		<module>../../plugins/org.eclipse.xtext.junit4</module>
-		<module>../../plugins/org.eclipse.xtext.logging</module>
-		<module>../../plugins/org.eclipse.xtext.purexbase</module>
-		<module>../../plugins/org.eclipse.xtext.purexbase.ui</module>
-		<module>../../plugins/org.eclipse.xtext.ui</module>
-		<module>../../plugins/org.eclipse.xtext.ui.codetemplates</module>
-		<module>../../plugins/org.eclipse.xtext.ui.codetemplates.ui</module>
-		<module>../../plugins/org.eclipse.xtext.ui.ecore</module>
-		<module>../../plugins/org.eclipse.xtext.ui.junit</module>
-		<module>../../plugins/org.eclipse.xtext.ui.shared</module>
-		<module>../../plugins/org.eclipse.xtext.util</module>
-		<module>../../plugins/org.eclipse.xtext.wikitext.core</module>
-		<module>../../plugins/org.eclipse.xtext.xbase</module>
-		<module>../../plugins/org.eclipse.xtext.xbase.junit</module>
-		<module>../../plugins/org.eclipse.xtext.xbase.lib</module>
-		<module>../../plugins/org.eclipse.xtext.xbase.ui</module>
-		<module>../../plugins/org.eclipse.xtext.xtend2</module>
-		<module>../../plugins/org.eclipse.xtext.xtend2.lib</module>
-		<module>../../plugins/org.eclipse.xtext.xtend2.ui</module>
-		<module>../../plugins/org.eclipse.xtext.xtext.ui</module>
-		<module>../../plugins/org.eclipse.xtext.xtext.ui.graph</module>
-
-		<!-- Tests -->
-		<module>../../tests/org.eclipse.xtext.builder.tests</module>
-		<module>../../tests/org.eclipse.xtext.common.types.tests</module>
-		<module>../../tests/org.eclipse.xtext.purexbase.tests</module>
-		<module>../../tests/org.eclipse.xtext.testlanguages</module>
-		<module>../../tests/org.eclipse.xtext.testlanguages.ui</module>
-		<module>../../tests/org.eclipse.xtext.tests</module>
-		<module>../../tests/org.eclipse.xtext.ui.tests</module>
-		<module>../../tests/org.eclipse.xtext.wikitext.tests</module>
-		<module>../../tests/org.eclipse.xtext.xbase.tests</module>
-		<module>../../tests/org.eclipse.xtext.xbase.ui.tests</module>
-		<module>../../tests/org.eclipse.xtext.xtend2.tests</module>
-		<module>../../tests/org.eclipse.xtext.xtend2.ui.tests</module>
-		<module>../../tests/org.eclipse.xtext.xtext.ui.graph.tests</module>
-		<module>../../tests/org.eclipse.xtext.xtext.ui.tests</module>
-
-		<!-- Examples -->
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.arithmetics</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.arithmetics.tests</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.arithmetics.ui</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.css</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.css.rendering</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.css.tests</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.css.ui</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.domainmodel</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.domainmodel.tests</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.domainmodel.ui</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.ecoredsl</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.ecoredsl.ui</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.fowlerdsl</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.fowlerdsl.ui</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.gmf</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.gmf.diagram</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.gmf.diagram.extensions</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.gmf.edit</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.gmf.ui</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.xbase.tutorial</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.example.xtend.tutorial</module>
-		<module>../../examples/org.eclipse.xtext.xtext.ui.examples/contents/org.eclipse.xtext.gmf.glue</module>
 	</modules>
 
 	<pluginRepositories>
@@ -212,7 +132,12 @@
 		<repository>
 			<id>eclipse-platform</id>
 			<layout>p2</layout>
-			<url>${eclipse-site}</url>
+			<url>${eclipse.p2.repository}</url>
+		</repository>
+		<repository>
+			<id>emf</id>
+			<layout>p2</layout>
+			<url>${emf.p2.repository}</url>
 		</repository>
 		<repository>
 			<id>mwe</id>
@@ -251,7 +176,6 @@
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>tycho-source-plugin</artifactId>
-				<version>${tycho-version}</version>
 				<executions>
 					<execution>
 						<id>plugin-source</id>

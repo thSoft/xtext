@@ -4,10 +4,10 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <artifactId>contents</artifactId>
-    <groupId>org.eclipse.xtext</groupId>
+    <groupId>org.eclipse.xtext.examples</groupId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <groupId>org.eclipse.xtext</groupId>
+  <groupId>org.eclipse.xtext.examples</groupId>
   <artifactId>org.eclipse.xtext.example.css</artifactId>
   <version>1.1.1-SNAPSHOT</version>
   <packaging>eclipse-plugin</packaging>
