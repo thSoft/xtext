@@ -1,3 +1,4 @@
 ﻿org.eclipse.xtext.logging (fragment)	-	changed import package to require bundle for org.eclipse.core.runtime 
 org.eclipse.xtext.sdk.feature			-	removed all the source features
 org.eclipse.xtext.tests					-	removed org.eclipse.test and org.eclipse.ant.optional.junit plugin
+org.eclipse.xtext.xtext.ui.examples		-	added dummy src folder, can't compile otherwise
