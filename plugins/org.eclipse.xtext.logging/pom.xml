@@ -10,4 +10,5 @@
   <groupId>org.eclipse.xtext.plugins</groupId>
   <artifactId>org.eclipse.xtext.logging</artifactId>
   <packaging>eclipse-plugin</packaging>
+  <version>1.2.15-SNAPSHOT</version>
 </project>

@@ -20,7 +20,6 @@
 		<module>org.eclipse.xtext.testlanguages.ui</module>
 		<module>org.eclipse.xtext.tests</module>
 		<module>org.eclipse.xtext.ui.tests</module>
-		<module>org.eclipse.xtext.wikitext.tests</module>
 		<module>org.eclipse.xtext.xbase.tests</module>
 		<module>org.eclipse.xtext.xbase.ui.tests</module>
 		<module>org.eclipse.xtext.xtend2.tests</module>

@@ -31,7 +31,6 @@
 		<module>org.eclipse.xtext.ui.junit</module>
 		<module>org.eclipse.xtext.ui.shared</module>
 		<module>org.eclipse.xtext.util</module>
-		<module>org.eclipse.xtext.wikitext.core</module>
 		<module>org.eclipse.xtext.xbase</module>
 		<module>org.eclipse.xtext.xbase.junit</module>
 		<module>org.eclipse.xtext.xbase.lib</module>
