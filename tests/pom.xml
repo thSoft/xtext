@@ -1,35 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.eclipse.xtext.tests</groupId>
-  <artifactId>tests</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <packaging>pom</packaging>
-  <modules>
-    <module>org.eclipse.xtext.builder.tests</module>
-    <module>org.eclipse.xtext.common.types.tests</module>
-    <module>org.eclipse.xtext.purexbase.tests</module>
-    <module>org.eclipse.xtext.testlanguages</module>
-    <module>org.eclipse.xtext.testlanguages.ui</module>
-    <module>org.eclipse.xtext.tests</module>
-    <module>org.eclipse.xtext.ui.tests</module>
-    <module>org.eclipse.xtext.wikitext.tests</module>
-    <module>org.eclipse.xtext.xbase.tests</module>
-    <module>org.eclipse.xtext.xbase.ui.tests</module>
-    <module>org.eclipse.xtext.xtend2.tests</module>
-    <module>org.eclipse.xtext.xtend2.ui.tests</module>
-    <module>org.eclipse.xtext.xtext.ui.graph.tests</module>
-    <module>org.eclipse.xtext.xtext.ui.tests</module>
-  </modules>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.eclipse.tycho</groupId>
-        <artifactId>tycho-maven-plugin</artifactId>
-        <version>0.12.0</version>
-        <extensions>true</extensions>
-      </plugin>
-    </plugins>
-  </build>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.eclipse.xtext</groupId>
+		<version>1.0.0-SNAPSHOT</version>
+		<artifactId>org.eclipse.xtext.xtext-parent</artifactId>
+		<relativePath>../releng/org.eclipse.xtext.xtext-parent/pom.xml</relativePath>
+	</parent>
+	<groupId>org.eclipse.xtext.tests</groupId>
+	<artifactId>tests</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<modules>
+		<module>org.eclipse.xtext.builder.tests</module>
+		<module>org.eclipse.xtext.common.types.tests</module>
+		<module>org.eclipse.xtext.purexbase.tests</module>
+		<module>org.eclipse.xtext.testlanguages</module>
+		<module>org.eclipse.xtext.testlanguages.ui</module>
+		<module>org.eclipse.xtext.tests</module>
+		<module>org.eclipse.xtext.ui.tests</module>
+		<module>org.eclipse.xtext.wikitext.tests</module>
+		<module>org.eclipse.xtext.xbase.tests</module>
+		<module>org.eclipse.xtext.xbase.ui.tests</module>
+		<module>org.eclipse.xtext.xtend2.tests</module>
+		<module>org.eclipse.xtext.xtend2.ui.tests</module>
+		<module>org.eclipse.xtext.xtext.ui.graph.tests</module>
+		<module>org.eclipse.xtext.xtext.ui.tests</module>
+	</modules>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-maven-plugin</artifactId>
+				<version>0.12.0</version>
+				<extensions>true</extensions>
+			</plugin>
+		</plugins>
+	</build>
 </project>

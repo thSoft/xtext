@@ -1,7 +1,6 @@
 package org.eclipse.xtext.purexbase.generator;
 
 import com.google.inject.Inject;
-import java.util.List;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
@@ -15,10 +14,8 @@ import org.eclipse.xtext.xbase.XBlockExpression;
 import org.eclipse.xtext.xbase.compiler.ImportManager;
 import org.eclipse.xtext.xbase.compiler.StringBuilderBasedAppendable;
 import org.eclipse.xtext.xbase.compiler.XbaseCompiler;
-import org.eclipse.xtext.xbase.lib.Functions.Function1;
 import org.eclipse.xtext.xbase.lib.IntegerExtensions;
 import org.eclipse.xtext.xbase.lib.IterableExtensions;
-import org.eclipse.xtext.xbase.lib.ListExtensions;
 import org.eclipse.xtext.xbase.lib.StringExtensions;
 import org.eclipse.xtext.xtend2.lib.StringConcatenation;
 
@@ -64,33 +61,19 @@ public class PureXbaseGenerator implements IGenerator {
       JvmTypeReference _typeForName = this.typeReferences.getTypeForName("void", m);
       this.compiler.compile(_block, appendable, _typeForName);
       StringConcatenation _builder = new StringConcatenation();
-      List<String> _imports = impMnr.getImports();
-      final Function1<String,String> _function = new Function1<String,String>() {
-          public String apply(final String e) {
-            String _operator_plus = StringExtensions.operator_plus("import ", e);
-            String _operator_plus_1 = StringExtensions.operator_plus(_operator_plus, ";\n");
-            return _operator_plus_1;
-          }
-        };
-      List<String> _map = ListExtensions.<String, String>map(_imports, _function);
-      String _join = IterableExtensions.join(_map);
-      _builder.append(_join, "");
-      _builder.newLineIfNotEmpty();
+      _builder.append("\u00B4impMnr.imports.map(e | \'import \' + e + \';\\n\').join()\u00AA");
+      _builder.newLine();
       _builder.newLine();
       _builder.append("@SuppressWarnings(\"all\")");
       _builder.newLine();
-      _builder.append("public class ");
-      Resource _eResource = m.eResource();
-      String _name = this.name(_eResource);
-      _builder.append(_name, "");
-      _builder.append(" {");
-      _builder.newLineIfNotEmpty();
+      _builder.append("public class \u00B4m.eResource.name\u00AA {");
+      _builder.newLine();
       _builder.append("\t");
       _builder.append("public static void main(String[] args) {");
       _builder.newLine();
       _builder.append("\t\t");
-      _builder.append(appendable, "		");
-      _builder.newLineIfNotEmpty();
+      _builder.append("\u00B4appendable\u00AA");
+      _builder.newLine();
       _builder.append("\t");
       _builder.append("}");
       _builder.newLine();

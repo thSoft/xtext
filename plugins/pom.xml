@@ -5,16 +5,15 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.eclipse.xtext</groupId>
-    <version>1.0.0-SNAPSHOT</version>
-    <artifactId>org.eclipse.xtext.xtext-parent</artifactId>
-    <relativePath>../releng/org.eclipse.xtext.xtext-parent/pom.xml</relativePath>
+		<version>1.0.0-SNAPSHOT</version>
+		<artifactId>org.eclipse.xtext.xtext-parent</artifactId>
+		<relativePath>../releng/org.eclipse.xtext.xtext-parent/pom.xml</relativePath>
 	</parent>
 	<groupId>org.eclipse.xtext.plugins</groupId>
 	<artifactId>plugins</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<modules>
-		<module>org.antlr.runtime</module>
 		<module>org.eclipse.xtext</module>
 		<module>org.eclipse.xtext.activities</module>
 		<module>org.eclipse.xtext.builder</module>
@@ -24,9 +23,6 @@
 		<module>org.eclipse.xtext.doc</module>
 		<module>org.eclipse.xtext.ecore</module>
 		<module>org.eclipse.xtext.generator</module>
-		<module>org.eclipse.xtext.junit</module>
-		<module>org.eclipse.xtext.junit4</module>
-		<module>org.eclipse.xtext.logging</module>
 		<module>org.eclipse.xtext.purexbase</module>
 		<module>org.eclipse.xtext.purexbase.ui</module>
 		<module>org.eclipse.xtext.ui</module>
@@ -46,6 +42,9 @@
 		<module>org.eclipse.xtext.xtend2.ui</module>
 		<module>org.eclipse.xtext.xtext.ui</module>
 		<module>org.eclipse.xtext.xtext.ui.graph</module>
+		<module>org.eclipse.xtext.junit</module>
+		<module>org.eclipse.xtext.junit4</module>
+		<module>org.eclipse.xtext.logging</module>
 	</modules>
 	<build>
 		<plugins>
