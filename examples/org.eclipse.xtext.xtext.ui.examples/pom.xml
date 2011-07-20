@@ -5,16 +5,17 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.eclipse.xtext</groupId>
-		<version>1.0.0-SNAPSHOT</version>
+		<version>2.0.1-SNAPSHOT</version>
 		<artifactId>org.eclipse.xtext.xtext-parent</artifactId>
 		<relativePath>../../releng/org.eclipse.xtext.xtext-parent/pom.xml</relativePath>
 	</parent>
 	<groupId>org.eclipse.xtext.examples</groupId>
 	<artifactId>examples-container</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<modules>
 		<module>org.eclipse.xtext.xtext.ui.examples</module>
+		<module>contents/org.eclipse.xtext.example.domainmodel</module>
+		<module>contents/org.eclipse.xtext.example.domainmodel.ui</module>
 	</modules>
 	<build>
 		<plugins>
