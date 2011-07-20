@@ -193,7 +193,7 @@
 					<artifactId>tycho-compiler-plugin</artifactId>
 					<version>${tycho-version}</version>
 					<configuration>
-						<encoding>UTF-8</encoding>
+						<encoding>ISO-8859-1</encoding>
 					</configuration>
 				</plugin>
 				<plugin>
