@@ -11,10 +11,10 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>releng/org.eclipse.xtext.xtext-parent</module>
 		<module>plugins</module>
+		<module>features</module>
+		<module>releng/org.eclipse.xtext.xtext-parent</module>
 		<module>examples/org.eclipse.xtext.xtext.ui.examples</module>
 		<module>tests</module>
-		<module>features</module>
 	</modules>
 </project>

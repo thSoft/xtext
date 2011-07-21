@@ -48,7 +48,6 @@
 	</licenses>
 
 	<properties>
-		<xtext-version>2.0.1-SNAPSHOT</xtext-version>
 		<tycho-version>0.12.0</tycho-version>
 		<junit-version>4.8.1</junit-version>
 
@@ -56,7 +55,7 @@
 		<mwe.p2.repository>${eclipse.download}/modeling/m2t/xpand/updates/nightly</mwe.p2.repository>
 		<xpand.p2.repository>${eclipse.download}/modeling/emft/mwe/updates/nightly</xpand.p2.repository>
 		<orbit.p2.repository>${eclipse.download}/tools/orbit/downloads/drops/R20110523182458/repository</orbit.p2.repository>
-
+		<eclipse.staging.area>/shared/download-staging.priv/modeling/tmf/xtext</eclipse.staging.area>
 		<!-- <signer-input-directory>/home/data/httpd/download-staging.priv/xtext</signer-input-directory> 
 			<download-publish-path>/home/data/httpd/download.eclipse.org/egit/updates-nightly</download-publish-path> -->
 	</properties>
@@ -171,6 +170,33 @@
 				<configuration>
 					<resolver>p2</resolver>
 					<pomDependencies>consider</pomDependencies>
+					<environments>
+						<environment>
+							<os>linux</os>
+							<ws>gtk</ws>
+							<arch>x86</arch>
+						</environment>
+						<environment>
+							<os>linux</os>
+							<ws>gtk</ws>
+							<arch>x86_64</arch>
+						</environment>
+						<environment>
+							<os>win32</os>
+							<ws>win32</ws>
+							<arch>x86</arch>
+						</environment>
+						<environment>
+							<os>win32</os>
+							<ws>win32</ws>
+							<arch>x86_64</arch>
+						</environment>
+						<environment>
+							<os>macosx</os>
+							<ws>cocoa</ws>
+							<arch>x86_64</arch>
+						</environment>
+					</environments>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -193,6 +219,7 @@
 					<artifactId>tycho-compiler-plugin</artifactId>
 					<version>${tycho-version}</version>
 					<configuration>
+						<argLine>-Xmx512M</argLine>
 						<encoding>ISO-8859-1</encoding>
 					</configuration>
 				</plugin>
