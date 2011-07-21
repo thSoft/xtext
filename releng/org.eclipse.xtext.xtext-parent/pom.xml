@@ -56,8 +56,7 @@
 		<xpand.p2.repository>${eclipse.download}/modeling/emft/mwe/updates/nightly</xpand.p2.repository>
 		<orbit.p2.repository>${eclipse.download}/tools/orbit/downloads/drops/R20110523182458/repository</orbit.p2.repository>
 		<eclipse.staging.area>/shared/download-staging.priv/modeling/tmf/xtext</eclipse.staging.area>
-		<!-- <signer-input-directory>/home/data/httpd/download-staging.priv/xtext</signer-input-directory> 
-			<download-publish-path>/home/data/httpd/download.eclipse.org/egit/updates-nightly</download-publish-path> -->
+		<!-- <download-publish-path>/home/data/httpd/download.eclipse.org/egit/updates-nightly</download-publish-path> -->
 	</properties>
 
 	<profiles>
@@ -280,4 +279,3 @@
 		</dependencies>
 	</dependencyManagement>
 </project>
-
