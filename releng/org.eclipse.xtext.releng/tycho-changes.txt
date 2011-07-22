@@ -8,12 +8,13 @@ Tests zum Laufen überreden
 Signierung geht noch nicht
 Packaging der download Zips für SDK, Runtime etc. features (noch keine Idee wie)
 Publishing
-
+maven.test.failure.ignore=true funktioniert nicht in 0.12.0, 0.13.0 noch ist nicht verfügbar
 
 -- Summary --
-+ flache lernkurwe
++ flache lernkurve
 + m2e bringt ein eigenes embedded maven mit
 + schnell einzurichten für kleine/einfache Projekte. (pom generator)
++ profile konzept (Indigo,Galileo als target)
 
 - jedes projekt braucht eine pom.xml
 - jedes projekt muss als modul in einer parent pom.xml aufgeführt werden (bei neuen bundles also 
@@ -23,8 +24,8 @@ Publishing
 - redundante pflege von: versionen, bundle- feature namen, IU typen (bundle oder feature) 
 - source features werden nicht generiert, source bundels nicht für alle plugins
 - dependency herkunft ist nicht klar, auf die dependency in xtext bundels muss strenger geachtet werden.
-	bedeutet wohl dependency range [x.x.x,y.y.y) alle (externe und interne) abhängiheiten. Beispielsweise
+	bedeutet wohl dependency range [x.x.x,y.y.y) alle (externe und interne) abhängigkeiten. Beispielsweise
 	Examples wurden aus Galileo gezogen
 - *.launch kann nicht benutzt werden
 - packaging dauert länger als beim Buckminster
-- tycho documentation ist rar
+- tycho dokumentation ist rar

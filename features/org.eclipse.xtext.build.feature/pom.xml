@@ -82,7 +82,7 @@
 								<id>sign</id>
 								<configuration>
 									<inputFile>${project.build.directory}/${project.artifactId}-${project.version}-site.zip</inputFile>
-									<signerInputDirectory>${signer-input-directory}</signerInputDirectory>
+									<signerInputDirectory>${eclipse.staging.area}</signerInputDirectory>
 								</configuration>
 								<phase>package</phase>
 								<goals>
@@ -93,7 +93,7 @@
 								<id>repack</id>
 								<configuration>
 									<!-- TODO add timestamp site_20110720003052.zip -->
-									<inputFile>${project.build.directory}/signed/site_${project.version}.zip</inputFile>
+									<inputFile>${project.build.directory}/signed/site_assembly.zip</inputFile>
 								</configuration>
 								<phase>package</phase>
 								<goals>
