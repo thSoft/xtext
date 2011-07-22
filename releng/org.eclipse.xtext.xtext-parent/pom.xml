@@ -49,7 +49,7 @@
 
 	<properties>
 		<tycho-version>0.12.0</tycho-version>
-		<junit-version>4.8.1</junit-version>
+		<junit-version>3.8.2</junit-version>
 
 		<eclipse.download>http://download.eclipse.org</eclipse.download>
 		<mwe.p2.repository>${eclipse.download}/modeling/m2t/xpand/updates/nightly</mwe.p2.repository>

@@ -1,4 +1,30 @@
-﻿org.eclipse.xtext.logging (fragment)	-	changed import package to require bundle for org.eclipse.core.runtime 
-org.eclipse.xtext.sdk.feature			-	removed all the source features
-org.eclipse.xtext.tests					-	removed org.eclipse.test and org.eclipse.ant.optional.junit plugin
+﻿org.eclipse.xtext.logging (fragment)	-	changed import package to require bundle for org.eclipse.core.runtime, can't build otherwise
+org.eclipse.xtext.sdk.feature			-	removed all the source features, src feature are not generated, can't build otherwise
+org.eclipse.xtext.tests					-	removed org.eclipse.test and org.eclipse.ant.optional.junit plugin, can't resolve the depenency (located in CVS)
 org.eclipse.xtext.xtext.ui.examples		-	added dummy src folder, can't compile otherwise
+
+-- Noch zu Tun --
+Tests zum Laufen überreden 
+Signierung geht noch nicht
+Packaging der download Zips für SDK, Runtime etc. features (noch keine Idee wie)
+Publishing
+
+
+-- Summary --
++ flache lernkurwe
++ m2e bringt ein eigenes embedded maven mit
++ schnell einzurichten für kleine/einfache Projekte. (pom generator)
+
+- jedes projekt braucht eine pom.xml
+- jedes projekt muss als modul in einer parent pom.xml aufgeführt werden (bei neuen bundles also 
+	nicht nur in die feature.xml sondern auch in plugins/pom.xml eintragen)
+- beziehung zu der parent pom.xml ist versionsgebunden, bedeutet dass bei der umstellung auf Xtext 2.0.2
+	müssen alle kinder pom.xmls angepasst werden
+- redundante pflege von: versionen, bundle- feature namen, IU typen (bundle oder feature) 
+- source features werden nicht generiert, source bundels nicht für alle plugins
+- dependency herkunft ist nicht klar, auf die dependency in xtext bundels muss strenger geachtet werden.
+	bedeutet wohl dependency range [x.x.x,y.y.y) alle (externe und interne) abhängiheiten. Beispielsweise
+	Examples wurden aus Galileo gezogen
+- *.launch kann nicht benutzt werden
+- packaging dauert länger als beim Buckminster
+- tycho documentation ist rar
