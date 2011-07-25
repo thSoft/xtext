@@ -12,6 +12,9 @@
 	<groupId>org.eclipse.xtext.tests</groupId>
 	<artifactId>tests</artifactId>
 	<packaging>pom</packaging>
+	<properties>
+		<platform.argLine>-Xmx512m -XX:MaxPermSize=256m</platform.argLine>
+	</properties>
 	<modules>
 		<module>org.eclipse.xtext.test.tests</module>
 		<module>org.eclipse.xtext.xbase.tests</module>
@@ -30,6 +33,7 @@
 		<module>org.eclipse.xtext.xtext.ui.graph.tests</module>
 	</modules>
 	<build>
+
 		<plugins>
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
@@ -44,7 +48,7 @@
 				<configuration>
 					<useUIHarness>true</useUIHarness>
 					<useUIThread>false</useUIThread>
-					<argLine>-Xmx512m -XX:MaxPermSize=256m ${platform.argLine}</argLine>
+					<argLine>${platform.argLine}</argLine>
 					<application>org.eclipse.ui.ide.workbench</application>
 					<!-- <dependencies> <dependency> <type>p2-installable-unit</type> <artifactId>org.eclipse.xtext.ui.feature.group</artifactId> 
 						<version>[2.0.1,2.0.2)</version> </dependency> </dependencies> -->
@@ -54,27 +58,15 @@
 	</build>
 	<profiles>
 		<profile>
-			<id>macosx</id>
+			<id>osx</id>
 			<activation>
-				<os>
-					<name>mac os x</name>
-					<family>mac</family>
-				</os>
+				<property>
+					<name>java.vendor.url</name>
+					<value>http://www.apple.com/</value>
+				</property>
 			</activation>
 			<properties>
-				<platform.argLine>-XstartOnFirstThread</platform.argLine>
-			</properties>
-		</profile>
-		<profile>
-			<id>other-os</id>
-			<activation>
-				<os>
-					<name>not-mac</name>
-					<family>!mac</family>
-				</os>
-			</activation>
-			<properties>
-				<platform.argLine></platform.argLine>
+				<platform.argLine>-Xmx512m -XX:MaxPermSize=256m -XstartOnFirstThread</platform.argLine>
 			</properties>
 		</profile>
 	</profiles>
