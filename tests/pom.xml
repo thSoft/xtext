@@ -44,7 +44,7 @@
 				<configuration>
 					<useUIHarness>true</useUIHarness>
 					<useUIThread>false</useUIThread>
-					<argLine>${test.argLine}</argLine>
+					<argLine>-Xmx512m -XX:MaxPermSize=256m ${platform.argLine}</argLine>
 					<application>org.eclipse.ui.ide.workbench</application>
 					<!-- <dependencies> <dependency> <type>p2-installable-unit</type> <artifactId>org.eclipse.xtext.ui.feature.group</artifactId> 
 						<version>[2.0.1,2.0.2)</version> </dependency> </dependencies> -->
@@ -62,19 +62,7 @@
 				</property>
 			</activation>
 			<properties>
-				<test.argLine>-Xmx512m -XX:MaxPermSize=256m -XstartOnFirstThread</test.argLine>
-			</properties>
-		</profile>
-		<profile>
-			<id>other-os</id>
-			<activation>
-				<os>
-					<name>not-mac</name>
-					<family>!mac</family>
-				</os>
-			</activation>
-			<properties>
-				<test.argLine>-Xmx512m -XX:MaxPermSize=256m</test.argLine>
+				<platform.argLine>-XstartOnFirstThread</platform.argLine>
 			</properties>
 		</profile>
 	</profiles>
