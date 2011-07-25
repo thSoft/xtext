@@ -12,10 +12,11 @@ import org.eclipse.emf.ecore.impl.EcorePackageImpl;
  * @author huebner
  * 
  */
-public class EmfAvaiableTest extends TestCase {
+public class DependenciesAvaiableTest extends TestCase {
 	public void testEmfRegistryInitialized() {
 		System.out.println("EmfAvaiableTest.testEmfRegistryInitialized()"
 				+ EcorePackageImpl.init());
 		assertFalse(Registry.INSTANCE.isEmpty());
 	}
+
 }
