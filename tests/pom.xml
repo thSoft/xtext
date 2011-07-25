@@ -36,6 +36,32 @@
 				<version>0.12.0</version>
 				<extensions>true</extensions>
 			</plugin>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-surefire-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<executions>
+					<execution>
+						<phase>test</phase>
+						<configuration>
+							<useUIHarness>true</useUIHarness>
+							<useUIThread>false</useUIThread>
+							<application>org.eclipse.ui.ide.workbench</application>
+							<!-- <dependencies>
+								<dependency>
+									<type>p2-installable-unit</type>
+									<artifactId>org.eclipse.pde.feature.group</artifactId>
+									<version>${platform-version}</version>
+								</dependency>
+							</dependencies>-->
+						</configuration>
+						<goals>
+							<goal>test</goal>
+						</goals>
+					</execution>
+				</executions>
+
+			</plugin>
 		</plugins>
 	</build>
 	<profiles>
