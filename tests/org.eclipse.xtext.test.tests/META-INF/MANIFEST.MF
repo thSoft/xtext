@@ -13,8 +13,7 @@ Require-Bundle: org.junit,
  org.eclipse.emf.ecore,
  org.eclipse.emf.common,
  org.eclipse.ui.editors,
- org.eclipse.ui,
- org.antlr.runtime
+ org.eclipse.ui
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: Eclipse.org
 Import-Package: org.apache.log4j;version="1.2.15"
