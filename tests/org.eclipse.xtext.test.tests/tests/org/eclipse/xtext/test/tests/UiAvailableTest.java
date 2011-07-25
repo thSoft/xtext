@@ -11,7 +11,7 @@ import org.eclipse.ui.PlatformUI;
  * @author huebner
  * 
  */
-public class UiAvaiableTest extends TestCase {
+public class UiAvailableTest extends TestCase {
 
 	/**
 	 * Tests Workbench is loaded
