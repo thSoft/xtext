@@ -54,15 +54,27 @@
 	</build>
 	<profiles>
 		<profile>
-			<id>osx</id>
+			<id>macosx</id>
 			<activation>
-				<property>
-					<name>java.vendor.url</name>
-					<value>http://www.apple.com/</value>
-				</property>
+				<os>
+					<name>mac os x</name>
+					<family>mac</family>
+				</os>
 			</activation>
 			<properties>
 				<platform.argLine>-XstartOnFirstThread</platform.argLine>
+			</properties>
+		</profile>
+		<profile>
+			<id>other-os</id>
+			<activation>
+				<os>
+					<name>not-mac</name>
+					<family>!mac</family>
+				</os>
+			</activation>
+			<properties>
+				<platform.argLine></platform.argLine>
 			</properties>
 		</profile>
 	</profiles>
