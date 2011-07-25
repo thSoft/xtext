@@ -7,8 +7,12 @@
  *******************************************************************************/
 package org.eclipse.xtext.serializer.diagnostic;
 
+import java.util.List;
+
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.xtext.serializer.analysis.ISemanticSequencerNfaProvider.ISemState;
+import org.eclipse.xtext.util.formallang.INfaAdapter;
 
 import com.google.inject.ImplementedBy;
 
@@ -19,6 +23,9 @@ import com.google.inject.ImplementedBy;
 public interface ISemanticSequencerDiagnosticProvider {
 
 	ISerializationDiagnostic createInvalidContextOrTypeDiagnostic(EObject semanticObject, EObject context);
-	
+
 	ISerializationDiagnostic createFeatureValueMissing(EObject semanticObject, EStructuralFeature feature);
+
+	ISerializationDiagnostic createBacktrackingFailedDiagnostic(EObject semanticObject,
+			INfaAdapter<ISemState, List<ISemState>> nfa);
 }

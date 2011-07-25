@@ -100,7 +100,7 @@ public class SerializerTester {
 		if (semanticObject.eResource().getContents().contains(semanticObject)) {
 			List<Pair<EObject, ICompositeNode>> nodes = detachNodeModel(semanticObject);
 			String serialized = serializer.serialize(semanticObject);
-			parsed = parseHelper.parse(serialized);
+			parsed = parseHelper.parse(serialized, semanticObject.eResource().getResourceSet());
 			reattachNodes(nodes);
 		} else {
 			INode oldNode = NodeModelUtils.getNode(semanticObject);
@@ -110,8 +110,7 @@ public class SerializerTester {
 			String serialized = serializer.serialize(semanticObject);
 			String newtext = oldtext.substring(0, oldNode.getOffset()) + serialized
 					+ oldtext.substring(oldNode.getOffset() + oldNode.getLength());
-			System.out.println(newtext);
-			EObject newmodel = parseHelper.parse(newtext);
+			EObject newmodel = parseHelper.parse(newtext, semanticObject.eResource().getResourceSet());
 			parsed = newmodel.eResource().getEObject(oldURI);
 			reattachNodes(nodes);
 		}
@@ -134,17 +133,17 @@ public class SerializerTester {
 			StringBuilder msg = new StringBuilder();
 			msg.append("One context is expected, but " + Iterables.size(contexts) + " have been found\n");
 			msg.append("Contexts: " + Joiner.on(", ").join(Iterables.transform(contexts, new Context2NameFunction())));
-			msg.append("Semanitc Object: " + EmfFormatter.objPath(semanticObject));
+			msg.append("Semantic Object: " + EmfFormatter.objPath(semanticObject));
 			Assert.fail(msg.toString());
 		}
 		return contexts.iterator().next();
 	}
 
-	protected String getTextFromNodeModel(EObject semanitcObject) {
-		Resource res = semanitcObject.eResource();
-		if (res instanceof XtextResource && res.getContents().contains(semanitcObject))
+	protected String getTextFromNodeModel(EObject semanticObject) {
+		Resource res = semanticObject.eResource();
+		if (res instanceof XtextResource && res.getContents().contains(semanticObject))
 			return ((XtextResource) res).getParseResult().getRootNode().getText();
-		INode node = NodeModelUtils.getNode(semanitcObject);
+		INode node = NodeModelUtils.getNode(semanticObject);
 		Assert.assertNotNull(node);
 		return node.getText();
 	}
@@ -165,6 +164,7 @@ public class SerializerTester {
 	//	}
 
 	protected List<Pair<EObject, ICompositeNode>> detachNodeModel(EObject eObject) {
+		EcoreUtil.resolveAll(eObject);
 		List<Pair<EObject, ICompositeNode>> result = Lists.newArrayList();
 		Iterator<Object> iterator = EcoreUtil.getAllContents(eObject.eResource(), false);
 		while (iterator.hasNext()) {

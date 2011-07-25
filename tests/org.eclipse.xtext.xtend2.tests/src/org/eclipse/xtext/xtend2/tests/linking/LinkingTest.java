@@ -34,6 +34,7 @@ import org.eclipse.xtext.xbase.typing.ITypeProvider;
 import org.eclipse.xtext.xtend2.jvmmodel.IXtend2JvmAssociations;
 import org.eclipse.xtext.xtend2.tests.AbstractXtend2TestCase;
 import org.eclipse.xtext.xtend2.xtend2.XtendClass;
+import org.eclipse.xtext.xtend2.xtend2.XtendField;
 import org.eclipse.xtext.xtend2.xtend2.XtendFile;
 import org.eclipse.xtext.xtend2.xtend2.XtendFunction;
 import org.eclipse.xtext.xtend2.xtend2.XtendParameter;
@@ -86,6 +87,47 @@ public class LinkingTest extends AbstractXtend2TestCase {
 		final XMemberFeatureCall call = (XMemberFeatureCall)((XBlockExpression)func.getExpression()).getExpressions().get(0);
 		assertEquals("java.lang.String.indexOf(int)", call.getFeature().getIdentifier());
 		assertEquals("Foo.string", ((XMemberFeatureCall)call.getImplicitReceiver()).getFeature().getIdentifier());
+	}
+	
+	public void testExtensionMethodCall_Bug351827_01() throws Exception {
+		XtendClass clazz = clazz("" +
+				"class Foo {" +
+				"  extension testdata.Properties1 p\n" +
+				"  def foo(String s) {\n" +
+				"    s.setProp1()\n" +
+				"  }\n" +
+				"  def setProp1(String s) { s }" +
+				"}");
+		XtendFunction func = (XtendFunction) clazz.getMembers().get(1);
+		final XMemberFeatureCall call = (XMemberFeatureCall)((XBlockExpression)func.getExpression()).getExpressions().get(0);
+		assertEquals("Foo.setProp1(java.lang.String)", call.getFeature().getIdentifier());
+	}
+	
+	public void testExtensionMethodCall_Bug351827_02() throws Exception {
+		XtendClass clazz = clazz("" +
+				"class Foo {" +
+				"  extension testdata.Properties1 p\n" +
+				"  def foo(String s) {\n" +
+				"    s.setProp1\n" +
+				"  }\n" +
+				"  def setProp1(String s) { s }" +
+				"}");
+		XtendFunction func = (XtendFunction) clazz.getMembers().get(1);
+		final XMemberFeatureCall call = (XMemberFeatureCall)((XBlockExpression)func.getExpression()).getExpressions().get(0);
+		assertEquals("Foo.setProp1(java.lang.String)", call.getFeature().getIdentifier());
+	}
+	
+	public void testExtensionMethodCall_Bug351827_03() throws Exception {
+		XtendClass clazz = clazz("" +
+				"class Foo {" +
+				"  extension testdata.Properties1 p\n" +
+				"  def foo(String s) {\n" +
+				"    s.setProp1\n" +
+				"  }\n" +
+				"}");
+		XtendFunction func = (XtendFunction) clazz.getMembers().get(1);
+		final XMemberFeatureCall call = (XMemberFeatureCall)((XBlockExpression)func.getExpression()).getExpressions().get(0);
+		assertEquals("testdata.Properties1.setProp1(java.lang.String)", call.getFeature().getIdentifier());
 	}
 	
 	public void testCaseFunction_00() throws Exception {
@@ -145,7 +187,7 @@ public class LinkingTest extends AbstractXtend2TestCase {
 		JvmTypeReference paramType = func.getParameters().get(0).getParameterType();
 		assertNotSame(typeParamDecl,paramType.getType());
 	}
-
+	
 	public void testFeatureScope_1() throws Exception {
 		XtendFile file = file ("class X { def String foo() {'hello world'} def String bar(String foo) {foo}}");
 		XtendClass xClass = file.getXtendClass();
@@ -455,5 +497,21 @@ public class LinkingTest extends AbstractXtend2TestCase {
 		XtendParameter parameter = function.getParameters().get(0);
 		String identifier = parameter.getParameterType().getIdentifier();
 		assertEquals(Functions.Function0.class.getName()+ "<java.lang.Integer>", identifier);
+	}
+	
+	public void testRelativeImports() throws Exception {
+		XtendFile file = file (
+				"package annotation class X {\n" +
+				"  Annotation failed\n" +
+				"  java.lang.annotation.Annotation success\n" +
+				"  reflect.AccessibleObject failedToo\n" +
+				"}");
+		XtendClass xClass = file.getXtendClass();
+		XtendField failed  = (XtendField) xClass.getMembers().get(0);
+		assertTrue("Annotation", failed.getType().getType().eIsProxy());
+		XtendField success  = (XtendField) xClass.getMembers().get(1);
+		assertFalse("java.lang.annotation", success.getType().getType().eIsProxy());
+		XtendField failedToo  = (XtendField) xClass.getMembers().get(2);
+		assertTrue("reflect.AccessibleObject", failedToo.getType().getType().eIsProxy());
 	}
 }

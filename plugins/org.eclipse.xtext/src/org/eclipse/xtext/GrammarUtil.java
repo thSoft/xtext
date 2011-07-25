@@ -419,7 +419,7 @@ public class GrammarUtil {
 		}
 		return null;
 	}
-
+	
 	// TODO replace me by compiled grammar model
 	public static EReference getReference(CrossReference crossRef) {
 		EClassifier referenceOwner = findCurrentType(crossRef);
