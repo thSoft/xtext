@@ -39,12 +39,14 @@ import org.eclipse.xtext.grammaranalysis.impl.AbstractNFATransition;
 import org.eclipse.xtext.grammaranalysis.impl.AbstractPDAProvider;
 import org.eclipse.xtext.grammaranalysis.impl.GrammarElementTitleSwitch;
 import org.eclipse.xtext.serializer.analysis.GrammarAlias.AbstractElementAlias;
+import org.eclipse.xtext.serializer.analysis.GrammarAlias.GrammarAliasFactory;
 import org.eclipse.xtext.serializer.analysis.GrammarAlias.GroupAlias;
 import org.eclipse.xtext.serializer.analysis.GrammarAlias.TokenAlias;
 import org.eclipse.xtext.serializer.sequencer.RuleCallStack;
-import org.eclipse.xtext.util.formallang.ITokenPdaAdapter;
+import org.eclipse.xtext.util.formallang.Nfa;
 import org.eclipse.xtext.util.formallang.NfaToGrammar;
 import org.eclipse.xtext.util.formallang.NfaUtil;
+import org.eclipse.xtext.util.formallang.Pda;
 import org.eclipse.xtext.util.formallang.PdaUtil;
 
 import com.google.common.base.Function;
@@ -61,7 +63,7 @@ import com.google.inject.Singleton;
 @Singleton
 public class SyntacticSequencerPDAProvider implements ISyntacticSequencerPDAProvider {
 
-	protected static class NavigablePDA implements ITokenPdaAdapter<ISynState, RuleCall, AbstractElement> {
+	protected static class NavigablePDA implements Pda<ISynState, RuleCall> {
 
 		protected ISynNavigable navigable;
 
@@ -70,8 +72,8 @@ public class SyntacticSequencerPDAProvider implements ISyntacticSequencerPDAProv
 			this.navigable = navigable;
 		}
 
-		public Iterable<ISynState> getFinalStates() {
-			return Collections.<ISynState> singleton(navigable.getTarget());
+		public ISynState getStop() {
+			return navigable.getTarget();
 		}
 
 		public Iterable<ISynState> getFollowers(ISynState node) {
@@ -93,14 +95,10 @@ public class SyntacticSequencerPDAProvider implements ISyntacticSequencerPDAProv
 					.getGrammarElement() : null;
 		}
 
-		public Iterable<ISynState> getStartStates() {
+		public ISynState getStart() {
 			if (navigable instanceof ISynTransition)
-				return Collections.<ISynState> singleton(((ISynTransition) navigable).getSource());
-			return Collections.singleton((ISynState) navigable);
-		}
-
-		public AbstractElement getToken(ISynState owner) {
-			return owner.getGrammarElement();
+				return ((ISynTransition) navigable).getSource();
+			return (ISynState) navigable;
 		}
 
 	}
@@ -426,7 +424,7 @@ public class SyntacticSequencerPDAProvider implements ISyntacticSequencerPDAProv
 			return target.getEClass();
 		}
 
-		public ITokenPdaAdapter<ISynState, RuleCall, AbstractElement> getPathToTarget() {
+		public Pda<ISynState, RuleCall> getPathToTarget() {
 			return new NavigablePDA(this);
 		}
 
@@ -693,8 +691,8 @@ public class SyntacticSequencerPDAProvider implements ISyntacticSequencerPDAProv
 		}
 
 		public AbstractElementAlias getShortSyntax() {
-			return new NfaToGrammar().nfaToGrammar(new NfaUtil().filter(getPathToTarget(), new Filter()),
-					new GrammarAlias.GrammarAliasFactory());
+			Nfa<ISynState> path = new NfaUtil().filter(getPathToTarget(), new Filter());
+			return new NfaToGrammar().nfaToGrammar(path, new GetGrammarElement(), new GrammarAliasFactory());
 		}
 
 		public ISynAbsorberState getSource() {
@@ -702,7 +700,8 @@ public class SyntacticSequencerPDAProvider implements ISyntacticSequencerPDAProv
 		}
 
 		public AbstractElementAlias getSyntax() {
-			return new NfaToGrammar().nfaToGrammar(getPathToTarget(), new GrammarAlias.GrammarAliasFactory());
+			Pda<ISynState, RuleCall> pathToTarget = getPathToTarget();
+			return new NfaToGrammar().nfaToGrammar(pathToTarget, new GetGrammarElement(), new GrammarAliasFactory());
 		}
 
 		@Override

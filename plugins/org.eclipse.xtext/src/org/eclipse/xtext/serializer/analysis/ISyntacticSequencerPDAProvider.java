@@ -7,7 +7,6 @@
  *******************************************************************************/
 package org.eclipse.xtext.serializer.analysis;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -19,9 +18,9 @@ import org.eclipse.xtext.grammaranalysis.IPDAState;
 import org.eclipse.xtext.grammaranalysis.IPDAState.PDAStateType;
 import org.eclipse.xtext.serializer.analysis.GrammarAlias.AbstractElementAlias;
 import org.eclipse.xtext.serializer.sequencer.RuleCallStack;
-import org.eclipse.xtext.util.formallang.INfaAdapter;
-import org.eclipse.xtext.util.formallang.ITokenPdaAdapter;
+import org.eclipse.xtext.util.formallang.Nfa;
 import org.eclipse.xtext.util.formallang.NfaUtil;
+import org.eclipse.xtext.util.formallang.Pda;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -32,6 +31,12 @@ import com.google.inject.ImplementedBy;
  */
 @ImplementedBy(SyntacticSequencerPDAProvider.class)
 public interface ISyntacticSequencerPDAProvider {
+
+	public class GetGrammarElement implements Function<ISynState, AbstractElement> {
+		public AbstractElement apply(ISynState from) {
+			return from.getGrammarElement();
+		}
+	}
 
 	public interface ISynAbsorberState extends ISynState {
 		List<ISynAbsorberState> getOutAbsorbers();
@@ -53,7 +58,7 @@ public interface ISyntacticSequencerPDAProvider {
 	}
 
 	public interface ISynNavigable extends ISynFollowerOwner {
-		ITokenPdaAdapter<ISynState, RuleCall, AbstractElement> getPathToTarget();
+		Pda<ISynState, RuleCall> getPathToTarget();
 
 		List<ISynState> getShortestPathTo(AbstractElement ele, RuleCallStack stack);
 
@@ -88,7 +93,7 @@ public interface ISyntacticSequencerPDAProvider {
 		ISynAbsorberState getSource();
 	}
 
-	public class SynAbsorberNfaAdapter implements INfaAdapter<ISynAbsorberState, Iterable<ISynAbsorberState>> {
+	public class SynAbsorberNfaAdapter implements Nfa<ISynAbsorberState> {
 
 		protected ISynAbsorberState start;
 		protected ISynAbsorberState stop;
@@ -103,16 +108,16 @@ public interface ISyntacticSequencerPDAProvider {
 			});
 		}
 
-		public Iterable<ISynAbsorberState> getFinalStates() {
-			return Collections.singleton(stop);
-		}
-
 		public Iterable<ISynAbsorberState> getFollowers(ISynAbsorberState node) {
 			return node.getOutAbsorbers();
 		}
 
-		public Iterable<ISynAbsorberState> getStartStates() {
-			return Collections.singleton(start);
+		public ISynAbsorberState getStart() {
+			return start;
+		}
+
+		public ISynAbsorberState getStop() {
+			return stop;
 		}
 
 	}

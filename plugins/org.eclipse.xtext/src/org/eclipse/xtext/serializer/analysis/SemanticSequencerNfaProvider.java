@@ -28,8 +28,8 @@ import org.eclipse.xtext.serializer.analysis.ISyntacticSequencerPDAProvider.SynA
 import org.eclipse.xtext.serializer.impl.FeatureFinderUtil;
 import org.eclipse.xtext.util.Pair;
 import org.eclipse.xtext.util.Tuples;
-import org.eclipse.xtext.util.formallang.INfaAdapter;
-import org.eclipse.xtext.util.formallang.INfaFactory;
+import org.eclipse.xtext.util.formallang.Nfa;
+import org.eclipse.xtext.util.formallang.NfaFactory;
 import org.eclipse.xtext.util.formallang.NfaUtil;
 
 import com.google.common.collect.HashMultimap;
@@ -45,27 +45,27 @@ import com.google.inject.Singleton;
 @Singleton
 public class SemanticSequencerNfaProvider implements ISemanticSequencerNfaProvider {
 
-	protected static class SemNfa implements INfaAdapter<ISemState, List<ISemState>> {
+	protected static class SemNfa implements Nfa<ISemState> {
 
-		protected List<ISemState> starts = Lists.newArrayList();
-		protected List<ISemState> stops = Lists.newArrayList();
+		protected final ISemState start;
+		protected final ISemState stop;
 
-		public SemNfa(List<ISemState> starts, List<ISemState> stops) {
+		public SemNfa(ISemState starts, ISemState stops) {
 			super();
-			this.starts = starts;
-			this.stops = stops;
+			this.start = starts;
+			this.stop = stops;
 		}
 
-		public List<ISemState> getFinalStates() {
-			return stops;
+		public ISemState getStop() {
+			return stop;
 		}
 
 		public List<ISemState> getFollowers(ISemState node) {
 			return node.getFollowers();
 		}
 
-		public List<ISemState> getStartStates() {
-			return starts;
+		public ISemState getStart() {
+			return start;
 		}
 
 	}
@@ -117,15 +117,14 @@ public class SemanticSequencerNfaProvider implements ISemanticSequencerNfaProvid
 		}
 	}
 
-	protected static class SemStateFactory implements INfaFactory<ISemState, List<ISemState>, ISynAbsorberState> {
+	protected static class SemStateFactory implements NfaFactory<ISemState, ISynAbsorberState> {
 
 		public ISemState createEndState(ISynAbsorberState token) {
 			return new SemState(token.getEClass(), token.getGrammarElement());
 		}
 
-		public INfaAdapter<ISemState, List<ISemState>> createNfa(Iterable<ISemState> startStates,
-				Iterable<ISemState> stopStates) {
-			return new SemNfa(Lists.newArrayList(startStates), Lists.newArrayList(stopStates));
+		public Nfa<ISemState> createNfa(ISemState startStates, ISemState stopStates) {
+			return new SemNfa(startStates, stopStates);
 		}
 
 		public ISemState createStartState(ISynAbsorberState token) {
@@ -145,19 +144,19 @@ public class SemanticSequencerNfaProvider implements ISemanticSequencerNfaProvid
 	@Inject
 	protected ISyntacticSequencerPDAProvider pdaProvider;
 
-	protected Map<Pair<EObject, EClass>, INfaAdapter<ISemState, List<ISemState>>> cache = Maps.newHashMap();
+	protected Map<Pair<EObject, EClass>, Nfa<ISemState>> cache = Maps.newHashMap();
 
-	public INfaAdapter<ISemState, List<ISemState>> getNFA(EObject context, EClass type) {
+	public Nfa<ISemState> getNFA(EObject context, EClass type) {
 		Pair<EObject, EClass> key = Tuples.create(context, type);
-		INfaAdapter<ISemState, List<ISemState>> nfa = cache.get(key);
+		Nfa<ISemState> nfa = cache.get(key);
 		if (nfa != null)
 			return nfa;
 		NfaUtil util = new NfaUtil();
 		SynAbsorberNfaAdapter synNfa = new SynAbsorberNfaAdapter(pdaProvider.getPDA(context, type));
 		//		System.out.println(new NfaFormatter().format(synNfa));
-		nfa = util.create(synNfa, new SemStateFactory());
-		Map<ISemState, Integer> distanceMap = util.distanceToFinalStateMap(nfa);
-		util.sortInplace(nfa, distanceMap);
+		Map<ISynAbsorberState, Integer> distanceMap = util.distanceToFinalStateMap(synNfa);
+		nfa = util.create(util.sort(synNfa, distanceMap), new SemStateFactory());
+		//		util.sortInplace(nfa, distanceMap);
 		initContentValidationNeeded(type, nfa);
 		//		System.out.println(new NfaFormatter().format(nfa));
 		cache.put(key, nfa);
@@ -185,7 +184,7 @@ public class SemanticSequencerNfaProvider implements ISemanticSequencerNfaProvid
 		return false;
 	}
 
-	protected void initContentValidationNeeded(EClass clazz, INfaAdapter<ISemState, List<ISemState>> nfa) {
+	protected void initContentValidationNeeded(EClass clazz, Nfa<ISemState> nfa) {
 		Multimap<EStructuralFeature, AbstractElement> assignments = HashMultimap.create();
 		Set<ISemState> states = new NfaUtil().collect(nfa);
 		for (ISemState state : states)

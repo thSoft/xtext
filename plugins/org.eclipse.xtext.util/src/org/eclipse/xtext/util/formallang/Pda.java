@@ -10,7 +10,8 @@ package org.eclipse.xtext.util.formallang;
 /**
  * @author Moritz Eysholdt - Initial contribution and API
  */
-public interface ITokenPdaAdapter<STATE, STACKITEM, TOKEN> extends IPdaAdapter<STATE, STACKITEM>,
-		ITokenNfaAdapter<STATE, TOKEN> {
+public interface Pda<STATE, STACKITEM> extends Nfa<STATE> {
+	STACKITEM getPop(STATE state);
 
+	STACKITEM getPush(STATE state);
 }

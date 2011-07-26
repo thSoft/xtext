@@ -13,8 +13,8 @@ import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 
 import org.eclipse.xtext.serializer.assignmentFinderTest.AssignmentFinderTestPackage;
-import org.eclipse.xtext.serializer.assignmentFinderTest.EnumN;
 import org.eclipse.xtext.serializer.assignmentFinderTest.EnumVal;
+import org.eclipse.xtext.serializer.assignmentFinderTest.TestEnum;
 
 /**
  * <!-- begin-user-doc -->
@@ -39,7 +39,7 @@ public class EnumValImpl extends MinimalEObjectImpl.Container implements EnumVal
    * @generated
    * @ordered
    */
-  protected static final EnumN EN_EDEFAULT = EnumN.LIT1;
+  protected static final TestEnum EN_EDEFAULT = TestEnum.LIT1;
 
   /**
    * The cached value of the '{@link #getEn() <em>En</em>}' attribute.
@@ -49,7 +49,7 @@ public class EnumValImpl extends MinimalEObjectImpl.Container implements EnumVal
    * @generated
    * @ordered
    */
-  protected EnumN en = EN_EDEFAULT;
+  protected TestEnum en = EN_EDEFAULT;
 
   /**
    * <!-- begin-user-doc -->
@@ -77,7 +77,7 @@ public class EnumValImpl extends MinimalEObjectImpl.Container implements EnumVal
    * <!-- end-user-doc -->
    * @generated
    */
-  public EnumN getEn()
+  public TestEnum getEn()
   {
     return en;
   }
@@ -87,9 +87,9 @@ public class EnumValImpl extends MinimalEObjectImpl.Container implements EnumVal
    * <!-- end-user-doc -->
    * @generated
    */
-  public void setEn(EnumN newEn)
+  public void setEn(TestEnum newEn)
   {
-    EnumN oldEn = en;
+    TestEnum oldEn = en;
     en = newEn == null ? EN_EDEFAULT : newEn;
     if (eNotificationRequired())
       eNotify(new ENotificationImpl(this, Notification.SET, AssignmentFinderTestPackage.ENUM_VAL__EN, oldEn, en));
@@ -122,7 +122,7 @@ public class EnumValImpl extends MinimalEObjectImpl.Container implements EnumVal
     switch (featureID)
     {
       case AssignmentFinderTestPackage.ENUM_VAL__EN:
-        setEn((EnumN)newValue);
+        setEn((TestEnum)newValue);
         return;
     }
     super.eSet(featureID, newValue);

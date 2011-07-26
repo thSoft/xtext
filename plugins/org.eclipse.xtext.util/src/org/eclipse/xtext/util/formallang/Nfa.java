@@ -10,15 +10,9 @@ package org.eclipse.xtext.util.formallang;
 /**
  * @author Moritz Eysholdt - Initial contribution and API
  */
-public interface INfaFactory<STATE, ITERABLE extends Iterable<? extends STATE>, TOKEN> {
+public interface Nfa<STATE> extends DirectedGraph<STATE> {
 
-	INfaAdapter<STATE, ITERABLE> createNfa(Iterable<STATE> startStates, Iterable<STATE> stopStates);
+	STATE getStop();
 
-	STATE createEndState(TOKEN token);
-
-	STATE createStartState(TOKEN token);
-
-	STATE createState(TOKEN token);
-
-	void setFollowers(STATE owner, Iterable<STATE> followers);
+	STATE getStart();
 }
