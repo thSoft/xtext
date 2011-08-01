@@ -207,7 +207,7 @@ public class GrammarConstraintProvider implements IGrammarConstraintProvider {
 			if (!(obj instanceof Constraint))
 				return false;
 			Constraint c = (Constraint) obj;
-			return type == c.type && ((body == null && c.body == null) || body.equals(c.body));
+			return type == c.type && ((body == null && c.body == null) || (body != null && body.equals(c.body)));
 		}
 
 		public IConstraintElement[] getAssignments() {
@@ -241,6 +241,10 @@ public class GrammarConstraintProvider implements IGrammarConstraintProvider {
 		}
 
 		public String getName() {
+			return name + "_" + (type == null ? "null" : type.getName());
+		}
+
+		public String getSimpleName() {
 			return name;
 		}
 
@@ -449,6 +453,8 @@ public class GrammarConstraintProvider implements IGrammarConstraintProvider {
 			if (element == ce.element) {
 				if (children == null && ce.children == null)
 					return true;
+				if (children == null || ce.children == null)
+					return false;
 				else if (getType() == ConstraintElementType.ALTERNATIVE && children.size() == ce.children.size()) {
 					for (IConstraintElement child : children)
 						if (!ce.containsChild(child))
@@ -806,14 +812,23 @@ public class GrammarConstraintProvider implements IGrammarConstraintProvider {
 		public boolean isContentValidationNeeded() {
 			if (contentValidationNeeded != null)
 				return contentValidationNeeded;
-			if (assignments.length < 2)
-				return contentValidationNeeded = false;
-			IConstraintElement first = assignments[0];
-			for (int i = 1; i < assignments.length; i++)
-				if (first.getCrossReferenceType() != assignments[i].getCrossReferenceType()
-						|| !EcoreUtil.equals(first.getGrammarElement(), assignments[i].getGrammarElement()))
-					return contentValidationNeeded = true;
-			return contentValidationNeeded = false;
+			contentValidationNeeded = false;
+			if (assignments.length >= 2) {
+				IConstraintElement first = assignments[0];
+				if (first.getType() == ConstraintElementType.ASSIGNED_ACTION_CALL)
+					contentValidationNeeded = true;
+				else
+					for (int i = 1; i < assignments.length; i++) {
+						IConstraintElement a = assignments[i];
+						if (a.getType() == ConstraintElementType.ASSIGNED_ACTION_CALL
+								|| first.getCrossReferenceType() != a.getCrossReferenceType()
+								|| !EcoreUtil.equals(first.getGrammarElement(), a.getGrammarElement())) {
+							contentValidationNeeded = true;
+							break;
+						}
+					}
+			}
+			return contentValidationNeeded;
 		}
 
 		@Override
@@ -1167,8 +1182,7 @@ public class GrammarConstraintProvider implements IGrammarConstraintProvider {
 		// strategy 1: if there is a parser rule context, use it for a name
 		for (IConstraint c : equalConstraints)
 			if (((Constraint) c).getMostSpecificContext() instanceof ParserRule) {
-				String type = c.getType() != null ? c.getType().getName() : "null";
-				return context2Name.getContextName((ParserRule) ((Constraint) c).getMostSpecificContext()) + "_" + type;
+				return context2Name.getContextName((ParserRule) ((Constraint) c).getMostSpecificContext());
 			}
 
 		// strategy 2: use the names of all actions
@@ -1182,8 +1196,7 @@ public class GrammarConstraintProvider implements IGrammarConstraintProvider {
 			if (visited.add(pr))
 				rules.add(pr.getName());
 		}
-		return Joiner.on("_").join(rules) + "_" + Joiner.on('_').join(actions) + "_"
-				+ equalConstraints.iterator().next().getType().getName();
+		return Joiner.on("_").join(rules) + "_" + Joiner.on('_').join(actions);
 	}
 
 	protected IConstraint findRepresentativeConstraint(Collection<IConstraint> equalConstraints) {

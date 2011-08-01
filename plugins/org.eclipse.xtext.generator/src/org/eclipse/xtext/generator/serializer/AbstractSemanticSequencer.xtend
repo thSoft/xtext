@@ -6,7 +6,6 @@ import org.eclipse.xtext.serializer.analysis.GrammarConstraintProvider
 import org.eclipse.xtext.serializer.analysis.IGrammarConstraintProvider$IConstraint
 import org.eclipse.xtext.serializer.analysis.IGrammarConstraintProvider$IConstraintElement
 import org.eclipse.xtext.Grammar
-import static extension org.eclipse.xtext.generator.GenModelAccess.*
 import static extension org.eclipse.xtext.GrammarUtil.*
 import org.eclipse.xtext.generator.serializer.SemanticSequencerUtil.*
 import org.eclipse.emf.ecore.EPackage
@@ -31,6 +30,7 @@ import org.eclipse.xtext.serializer.diagnostic.ISerializationDiagnostic$Acceptor
 import com.google.inject.Provider
 import org.eclipse.xtext.serializer.analysis.IGrammarConstraintProvider
 import org.eclipse.emf.ecore.ENamedElement
+import org.eclipse.xtext.serializer.analysis.Context2NameFunction
 
 class AbstractSemanticSequencer extends GeneratedFile {
 	
@@ -41,6 +41,8 @@ class AbstractSemanticSequencer extends GeneratedFile {
 	@Inject extension SemanticSequencerUtil sequencerUtil
 	
 	@Inject SemanticSequencer sequencer
+	
+	@Inject extension Context2NameFunction ctx2name
 	
 	override String getQualifiedName(Grammar grammar) {
 		grammar.getName("Abstract", "SemanticSequencer");		
@@ -78,10 +80,6 @@ class AbstractSemanticSequencer extends GeneratedFile {
 		grammar.getGrammarConstraints()
 	}
 	
-	def getResourceSet() {
-		grammar.eResource.resourceSet
-	}
-	
 	def getGrammars(IGrammarConstraintProvider$IConstraintElement ele) {
 		val result = <Grammar>newHashSet();
 		if(ele != null && ele.grammarElement != null) result.add(ele.grammarElement.grammar);
@@ -102,7 +100,7 @@ class AbstractSemanticSequencer extends GeneratedFile {
 	}
 	
 	override getFileContents() {
-		val file = new JavaFile(packageName);
+		val file = new JavaEMFFile(grammar.eResource.resourceSet, packageName);
 		
 		file.imported(typeof(EObject))
 		file.imported(typeof(GenericSequencer))
@@ -161,17 +159,17 @@ class AbstractSemanticSequencer extends GeneratedFile {
 		file.toString 
 	}
 	
-	def genMethodCreateSequence(JavaFile file) '''
+	def genMethodCreateSequence(JavaEMFFile file) '''
 		public void createSequence(EObject context, EObject semanticObject) {
 			«var pkgi = 0 »
 			«FOR pkg:accessedPackages /* ITERATOR i */»
-			«IF (pkgi = pkgi + 1) > 1 /*!i.firstIteration */»else «ENDIF»if(semanticObject.eClass().getEPackage() == «file.imported(pkg.getGenPackage(resourceSet).qualifiedPackageInterfaceName)».eINSTANCE) switch(semanticObject.eClass().getClassifierID()) {
+			«IF (pkgi = pkgi + 1) > 1 /*!i.firstIteration */»else «ENDIF»if(semanticObject.eClass().getEPackage() == «file.importedGenTypeLiteral(pkg)») switch(semanticObject.eClass().getClassifierID()) {
 				«FOR type:pkg.accessedClasses»
-				case «type.getGenIntLiteral(resourceSet)»:
+				case «file.importedGenIntLiteral(type)»:
 					«var ctxi = 0»
-					«FOR ctx: type.accessedConstraints.entrySet /* ITERATOR j-  */»
-						«IF (ctxi = ctxi + 1) > 1 /*!j.firstIteration  */»else «ENDIF»if(«FOR c:ctx.value SEPARATOR " ||\n   "»context == grammarAccess.«c.gaAccessor»«ENDFOR») {
-							sequence_«ctx.key.name»(context, («file.imported(type.getGenClass(resourceSet).qualifiedInterfaceName)») semanticObject); 
+					«FOR ctx: type.accessedConstraints.entrySet.sortBy(e|e.key.name) /* ITERATOR j-  */»
+						«IF (ctxi = ctxi + 1) > 1 /*!j.firstIteration  */»else «ENDIF»if(«FOR c:ctx.value.sortBy(e|e.contextName) SEPARATOR " ||\n   "»context == grammarAccess.«c.gaAccessor»«ENDFOR») {
+							sequence_«ctx.key.simpleName»(context, («file.importedGenTypeName(type)») semanticObject); 
 							return; 
 						}
 					«ENDFOR»
@@ -183,7 +181,7 @@ class AbstractSemanticSequencer extends GeneratedFile {
 		}
 	'''
 	
-	def genMethodSequence(JavaFile file, IGrammarConstraintProvider$IConstraint c) '''
+	def genMethodSequence(JavaEMFFile file, IGrammarConstraintProvider$IConstraint c) '''
 		/**
 		 * Constraint:
 		 *     «if(c.body == null) "{"+c.type.name+"}" else c.body.toString().replaceAll("\\n","\n*     ")»
@@ -193,22 +191,21 @@ class AbstractSemanticSequencer extends GeneratedFile {
 			«" *    "»«f.toString().replaceAll("\\n","\n *     ")»
 		«ENDFOR»
 		 */
-		protected void sequence_«c.name»(EObject context, «file.imported(c.type.getGenClass(resourceSet).qualifiedInterfaceName)» semanticObject) {
+		protected void sequence_«c.simpleName»(EObject context, «file.importedGenTypeName(c.type)» semanticObject) {
 			«IF !newHashSet(grammar, null).contains(c.mostConcreteGrammar)»
 				superSequencer.createSequence(context, semanticObject);
 			«ELSEIF c.canGenerate()»
 				if(errorAcceptor != null) {
 					«FOR f:c.features.filter(e|e != null)»
-						«val x = file.imported(f.feature.EContainingClass.EPackage.getGenPackage(resourceSet).qualifiedPackageInterfaceName)»
-						if(transientValues.isValueTransient(semanticObject, «f.feature.getGenTypeLiteral(resourceSet)») == «file.imported(typeof(ITransientValueService$ValueTransient))».YES)
-							errorAcceptor.accept(diagnosticProvider.createFeatureValueMissing(semanticObject, «f.feature.getGenTypeLiteral(resourceSet)»));
+						if(transientValues.isValueTransient(semanticObject, «file.importedGenTypeLiteral(f.feature)») == «file.imported(typeof(ITransientValueService$ValueTransient))».YES)
+							errorAcceptor.accept(diagnosticProvider.createFeatureValueMissing(semanticObject, «file.importedGenTypeLiteral(f.feature)»));
 					«ENDFOR»
 				}
 				«file.imported(typeof(ISemanticNodeProvider$INodesForEObjectProvider))» nodes = createNodeProvider(semanticObject);
 				«file.imported(typeof(SequenceFeeder))» feeder = createSequencerFeeder(semanticObject, nodes);
 				«FOR f: if(c.body.featureInfo != null) newArrayList(c.body.featureInfo) else c.body.children.filter(e|e.featureInfo != null).map(e|e.featureInfo)»
 					«val assignment=f.assignments.get(0)»
-					feeder.accept(grammarAccess.«assignment.grammarElement.gaAccessor()», semanticObject.«f.feature.getGenFeature(resourceSet).getAccessor»());
+					feeder.accept(grammarAccess.«assignment.grammarElement.gaAccessor()», semanticObject.«file.getGetAccessor(f.feature)»());
 				«ENDFOR»
 				feeder.finish();
 			«ELSE»

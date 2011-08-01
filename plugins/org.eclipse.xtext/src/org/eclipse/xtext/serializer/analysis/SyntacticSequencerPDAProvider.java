@@ -39,6 +39,7 @@ import org.eclipse.xtext.grammaranalysis.impl.AbstractNFATransition;
 import org.eclipse.xtext.grammaranalysis.impl.AbstractPDAProvider;
 import org.eclipse.xtext.grammaranalysis.impl.GrammarElementTitleSwitch;
 import org.eclipse.xtext.serializer.analysis.GrammarAlias.AbstractElementAlias;
+import org.eclipse.xtext.serializer.analysis.GrammarAlias.AlternativeAlias;
 import org.eclipse.xtext.serializer.analysis.GrammarAlias.GrammarAliasFactory;
 import org.eclipse.xtext.serializer.analysis.GrammarAlias.GroupAlias;
 import org.eclipse.xtext.serializer.analysis.GrammarAlias.TokenAlias;
@@ -104,7 +105,7 @@ public class SyntacticSequencerPDAProvider implements ISyntacticSequencerPDAProv
 	}
 
 	public static class SequencerNFAProvider extends AbstractNFAProvider<SequencerNFAState, SequencerNFATransition> {
-		public class SequencerNFABuilder extends AbstractCachingNFABuilder<SequencerNFAState, SequencerNFATransition> {
+		public static class SequencerNFABuilder extends AbstractCachingNFABuilder<SequencerNFAState, SequencerNFATransition> {
 
 			@Override
 			public SequencerNFAState createState(AbstractElement ele) {
@@ -646,7 +647,7 @@ public class SyntacticSequencerPDAProvider implements ISyntacticSequencerPDAProv
 
 	protected static class SynTransition extends SynNavigable implements ISynTransition {
 
-		private final class Filter implements Predicate<ISynState> {
+		private final static class Filter implements Predicate<ISynState> {
 			public boolean apply(ISynState input) {
 				AbstractElement ge = input.getGrammarElement();
 				return ge instanceof Keyword || GrammarUtil.isDatatypeRuleCall(ge) || GrammarUtil.isEnumRuleCall(ge)
@@ -657,6 +658,8 @@ public class SyntacticSequencerPDAProvider implements ISyntacticSequencerPDAProv
 		protected static final AbstractElementAlias UNINITIALIZED = new TokenAlias(false, false, null);
 
 		protected AbstractElementAlias ambiguousSyntax = UNINITIALIZED;
+
+		protected List<AbstractElementAlias> ambiguousSyntaxes;
 
 		protected ISynAbsorberState source;
 
@@ -688,6 +691,26 @@ public class SyntacticSequencerPDAProvider implements ISyntacticSequencerPDAProv
 					ambiguousSyntax = null;
 			}
 			return ambiguousSyntax;
+		}
+
+		public List<AbstractElementAlias> getAmbiguousSyntaxes() {
+			if (ambiguousSyntaxes != null)
+				return ambiguousSyntaxes;
+			if (!isSyntacticallyAmbiguous())
+				return ambiguousSyntaxes = Collections.emptyList();
+			ambiguousSyntaxes = Lists.newArrayList();
+			Nfa<ISynState> nfa = new PdaUtil().filterUnambiguousPaths(getPathToTarget());
+			nfa = new NfaUtil().filter(nfa, new Filter());
+			AbstractElementAlias syntax = new NfaToGrammar().nfaToGrammar(nfa, new GetGrammarElement(),
+					new GrammarAliasFactory());
+			if (syntax instanceof GroupAlias) {
+				GroupAlias group = (GroupAlias) syntax;
+				for (AbstractElementAlias child : group.getChildren())
+					if (child.isMany() || child.isOptional() || child instanceof AlternativeAlias)
+						ambiguousSyntaxes.add(child);
+			} else
+				ambiguousSyntaxes.add(syntax);
+			return ambiguousSyntaxes;
 		}
 
 		public AbstractElementAlias getShortSyntax() {

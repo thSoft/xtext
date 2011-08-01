@@ -8,6 +8,7 @@
 package org.eclipse.xtext.serializer.sequencer;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,16 +47,50 @@ import com.google.inject.Inject;
  */
 public class BacktrackingSemanticSequencer extends AbstractSemanticSequencer {
 
+	protected static class FollowerSorter implements Comparator<ISemState> {
+
+		protected EObject nodeModelEle;
+
+		protected SerializableObject obj;
+
+		public FollowerSorter(SerializableObject obj, EObject nodeModelEle) {
+			super();
+			this.obj = obj;
+			this.nodeModelEle = nodeModelEle;
+		}
+
+		public int compare(ISemState o1, ISemState o2) {
+			if (nodeModelEle != null) {
+				if (o1.getAssignedGrammarElement() == nodeModelEle)
+					return -1;
+				if (o2.getAssignedGrammarElement() == nodeModelEle)
+					return 1;
+			}
+			if (o1.getAssignedGrammarElement() == null && o1.getAssignedGrammarElement() == null)
+				return 0;
+			if (o1.getAssignedGrammarElement() == null)
+				return 1;
+			if (o2.getAssignedGrammarElement() == null)
+				return -1;
+			boolean o1Opt = obj.isOptional(o1.getFeatureID());
+			boolean o2Opt = obj.isOptional(o2.getFeatureID());
+			if (o1Opt && o2Opt)
+				return 0;
+			if (o1Opt)
+				return 1;
+			if (o2Opt)
+				return -1;
+			return 0;
+		}
+
+	}
+
 	protected class SerializableObject {
 		protected EObject eObject;
+		protected List<INode>[] nodes;
 		protected boolean[] optional;
 		protected Map<Pair<AbstractElement, Integer>, Boolean> valid = Maps.newHashMap();
 		protected Object[] values;
-		protected List<INode>[] nodes;
-
-		public EObject getEObject() {
-			return eObject;
-		}
 
 		@SuppressWarnings("unchecked")
 		public SerializableObject(EObject eObject, INodesForEObjectProvider nodeProvider) {
@@ -97,14 +132,24 @@ public class BacktrackingSemanticSequencer extends AbstractSemanticSequencer {
 					switch (transientValueService.isValueTransient(eObject, feature)) {
 						case PREFERABLY:
 							optional[featureID] = true;
-						case NO:
-							Object value = eObject.eGet(feature);
-							values[featureID] = value;
+							Object value1 = eObject.eGet(feature);
+							values[featureID] = value1;
 							nodes[featureID] = Collections.singletonList(nodeProvider.getNodeForSingelValue(feature,
-									value));
+									value1));
+							break;
+						case NO:
+							Object value2 = eObject.eGet(feature);
+							values[featureID] = value2;
+							nodes[featureID] = Collections.singletonList(nodeProvider.getNodeForSingelValue(feature,
+									value2));
+							break;
 						case YES:
 					}
 			}
+		}
+
+		public EObject getEObject() {
+			return eObject;
 		}
 
 		public INode getNode(int featureID, int index) {
@@ -132,12 +177,12 @@ public class BacktrackingSemanticSequencer extends AbstractSemanticSequencer {
 			return 1;
 		}
 
-		public boolean isOptional(int featureID) {
-			return optional[featureID];
-		}
-
 		public boolean isList(int featureID) {
 			return values[featureID] instanceof List<?>;
+		}
+
+		public boolean isOptional(int featureID) {
+			return optional[featureID];
 		}
 
 		protected boolean isValueValid(ISemState state, int index, Object value) {
@@ -154,16 +199,39 @@ public class BacktrackingSemanticSequencer extends AbstractSemanticSequencer {
 			valid.put(key, result);
 			return result;
 		}
+
+		@Override
+		public String toString() {
+			List<String> mandatory = Lists.newArrayList();
+			List<String> optional = Lists.newArrayList();
+			for (int i = 0; i < values.length; i++) {
+				int count = getValueCount(i);
+				if (count > 0) {
+					EStructuralFeature feature = eObject.eClass().getEStructuralFeature(i);
+					if (this.optional[i])
+						optional.add(feature.getName() + "(" + count + ")");
+					else
+						mandatory.add(feature.getName() + "(" + count + ")");
+				}
+			}
+			StringBuilder result = new StringBuilder();
+			result.append("EObject: " + EmfFormatter.objPath(eObject) + "\n");
+			if (!mandatory.isEmpty())
+				result.append("Mandatory Values: " + Joiner.on(", ").join(mandatory) + "\n");
+			if (!optional.isEmpty())
+				result.append("Optional Values: " + Joiner.on(", ").join(optional) + "\n");
+			return result.toString();
+		}
 	}
 
-	protected class TraceItem {
+	protected static class TraceItem {
 		protected int index;
+		protected int[] nextIndex;
+		protected INode node;
 		protected SerializableObject obj;
 		protected TraceItem parent;
 		protected ISemState state;
-		protected int[] nextIndex;
 		protected Object value;
-		protected INode node;
 
 		public TraceItem(SerializableObject obj) {
 			this(obj, new int[obj.getEObject().eClass().getFeatureCount()]);
@@ -173,6 +241,16 @@ public class BacktrackingSemanticSequencer extends AbstractSemanticSequencer {
 			super();
 			this.obj = obj;
 			this.nextIndex = unconsumed;
+		}
+
+		public TraceItem clone(ISemState state) {
+			TraceItem result = new TraceItem(obj, nextIndex);
+			result.parent = this;
+			result.state = state;
+			result.value = value;
+			result.index = index;
+			result.node = node;
+			return result;
 		}
 
 		public TraceItem cloneAndConsume(ISemState state) {
@@ -194,26 +272,8 @@ public class BacktrackingSemanticSequencer extends AbstractSemanticSequencer {
 			return result;
 		}
 
-		public TraceItem clone(ISemState state) {
-			TraceItem result = new TraceItem(obj, nextIndex);
-			result.parent = this;
-			result.state = state;
-			result.value = value;
-			result.index = index;
-			result.node = node;
-			return result;
-		}
-
 		public int getIndex() {
 			return index;
-		}
-
-		public SerializableObject getObj() {
-			return obj;
-		}
-
-		public INode getNode() {
-			return node;
 		}
 
 		public INode getNextNode() {
@@ -231,6 +291,14 @@ public class BacktrackingSemanticSequencer extends AbstractSemanticSequencer {
 				}
 			}
 			return null;
+		}
+
+		public INode getNode() {
+			return node;
+		}
+
+		public SerializableObject getObj() {
+			return obj;
 		}
 
 		public TraceItem getParent() {
@@ -260,20 +328,24 @@ public class BacktrackingSemanticSequencer extends AbstractSemanticSequencer {
 		public String toString() {
 			List<String> mandatory = Lists.newArrayList();
 			List<String> optional = Lists.newArrayList();
+			List<String> consumed = Lists.newArrayList();
 			for (int i = 0; i < nextIndex.length; i++) {
 				int count = nextIndex[i];
-				if (count < obj.getValueCount(i)) {
-					EStructuralFeature feature = obj.getEObject().eClass().getEStructuralFeature(i);
+				int max = obj.getValueCount(i);
+				EStructuralFeature feature = obj.getEObject().eClass().getEStructuralFeature(i);
+				if (count < max) {
 					if (count == 0 && obj.isOptional(i))
-						optional.add(feature.getName() + "(" + (count + 1) + ")");
+						optional.add(feature.getName() + "(" + (max - count) + ")");
 					else
-						mandatory.add(feature.getName() + "(" + (count + 1) + ")");
-				}
+						mandatory.add(feature.getName() + "(" + (max - count) + ")");
+				} else if (max > 0)
+					consumed.add(feature.getName() + "(" + count + ")");
 			}
 			StringBuilder result = new StringBuilder();
 			result.append("EObject: " + EmfFormatter.objPath(obj.getEObject()) + "\n");
-			result.append("Mandatory Values: " + Joiner.on(", ").join(mandatory) + "\n");
-			result.append("Optional Values: " + Joiner.on(", ").join(optional) + "\n");
+			result.append("Remaining Mandatory Values: " + Joiner.on(", ").join(mandatory) + "\n");
+			result.append("Remaining Optional Values: " + Joiner.on(", ").join(optional) + "\n");
+			result.append("Consumed Values: " + Joiner.on(", ").join(consumed) + "\n");
 			return result.toString();
 		}
 
@@ -283,7 +355,7 @@ public class BacktrackingSemanticSequencer extends AbstractSemanticSequencer {
 	protected IAssignmentFinder assignmentFinder;
 
 	@Inject
-	protected ISemanticNodeProvider nodeProvider;
+	protected ISemanticSequencerDiagnosticProvider diagnosticProvider;
 
 	@Inject
 	protected ISemanticSequencerNfaProvider nfaProvider;
@@ -293,49 +365,6 @@ public class BacktrackingSemanticSequencer extends AbstractSemanticSequencer {
 
 	@Inject
 	protected TransientValueUtil transientValueUtil;
-
-	@Inject
-	protected ISemanticSequencerDiagnosticProvider diagnosticProvider;
-
-	public void createSequence(EObject context, final EObject obj) {
-		INodesForEObjectProvider nodes = nodeProvider.getNodesForSemanticObject(obj, null);
-		Nfa<ISemState> nfa = nfaProvider.getNFA(context, obj.eClass());
-		SerializableObject object = new SerializableObject(obj, nodes);
-		TraceItem co = new TraceItem(object);
-		List<TraceItem> trace = new NfaUtil().backtrack(nfa, co, new NfaUtil.BacktrackHandler<ISemState, TraceItem>() {
-			public TraceItem handle(ISemState state, TraceItem previous) {
-				if (state.getFeature() != null) {
-					return previous.cloneAndConsume(state);
-				} else
-					return previous.clone(state);
-			}
-
-			public boolean isSolution(TraceItem result) {
-				return result.isConsumed();
-			}
-
-			public Iterable<ISemState> sortFollowers(TraceItem result, Iterable<ISemState> followers) {
-				INode next = result.getNextNode();
-				if (next == null)
-					return followers;
-				List<ISemState> r = Lists.newArrayList(followers);
-				for (int i = 1; i < r.size(); i++)
-					if (r.get(i).getAssignedGrammarElement() == next.getGrammarElement()) {
-						Collections.swap(r, 0, i);
-						break;
-					}
-				return r;
-			}
-		});
-		SequenceFeeder feeder = feederProvider.create(obj, nodes, masterSequencer, sequenceAcceptor, errorAcceptor);
-		if (trace != null) {
-			for (TraceItem ti : trace)
-				if (ti.getState() != null && ti.getState().getFeature() != null)
-					accept(ti, feeder);
-		} else if (errorAcceptor != null)
-			errorAcceptor.accept(diagnosticProvider.createBacktrackingFailedDiagnostic(obj, context, nfa));
-		feeder.finish();
-	}
 
 	protected void accept(TraceItem ti, SequenceFeeder feeder) {
 		AbstractElement ele = ti.getState().getAssignedGrammarElement();
@@ -354,6 +383,40 @@ public class BacktrackingSemanticSequencer extends AbstractSemanticSequencer {
 			else if (ele instanceof Keyword)
 				feeder.accept((Keyword) ele, ti.getValue(), (ILeafNode) ti.getNode());
 		}
+	}
+
+	public void createSequence(EObject context, final EObject obj) {
+		INodesForEObjectProvider nodes = nodeProvider.getNodesForSemanticObject(obj, null);
+		Nfa<ISemState> nfa = nfaProvider.getNFA(context, obj.eClass());
+		final SerializableObject object = new SerializableObject(obj, nodes);
+		TraceItem co = new TraceItem(object);
+		List<TraceItem> trace = new NfaUtil().backtrack(nfa, co, new NfaUtil.BacktrackHandler<ISemState, TraceItem>() {
+			public TraceItem handle(ISemState state, TraceItem previous) {
+				if (state.getFeature() != null) {
+					return previous.cloneAndConsume(state);
+				} else
+					return previous.clone(state);
+			}
+
+			public boolean isSolution(TraceItem result) {
+				return result.isConsumed();
+			}
+
+			public Iterable<ISemState> sortFollowers(TraceItem result, Iterable<ISemState> followers) {
+				INode next = result.getNextNode();
+				List<ISemState> r = Lists.newArrayList(followers);
+				Collections.sort(r, new FollowerSorter(object, next == null ? null : next.getGrammarElement()));
+				return r;
+			}
+		});
+		SequenceFeeder feeder = feederProvider.create(obj, nodes, masterSequencer, sequenceAcceptor, errorAcceptor);
+		if (trace != null) {
+			for (TraceItem ti : trace)
+				if (ti.getState() != null && ti.getState().getFeature() != null)
+					accept(ti, feeder);
+		} else if (errorAcceptor != null)
+			errorAcceptor.accept(diagnosticProvider.createBacktrackingFailedDiagnostic(obj, context, nfa));
+		feeder.finish();
 	}
 
 }
