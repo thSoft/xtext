@@ -8,9 +8,13 @@ Tests zum Laufen überreden
 Signierung geht noch nicht
 Packaging der download Zips für SDK, Runtime etc. features (noch keine Idee wie)
 Publishing
-maven.test.failure.ignore=true funktioniert nicht in 0.12.0, 0.13.0 noch ist nicht verfügbar
+maven.test.failure.ignore=true funktioniert nicht in 0.12.0, 0.13.0 ist noch nicht verfügbar
 
 -- Summary --
+o die locale maven repository ~/.m2 ist etwas zu eigenständig, liegt aber wahrscheinlich daran, dass ich keine settings.xml habe
+	schwer zu kontrollieren (mit buckminster vergleichbar). Mann kanns aber immerhin manuell löschen, dann aber stauenen was da
+	alles landet wenn man clean build ausführt
+
 + flache lernkurve
 + m2e bringt ein eigenes embedded maven mit
 + schnell einzurichten für kleine/einfache Projekte. (pom generator)
@@ -21,7 +25,7 @@ maven.test.failure.ignore=true funktioniert nicht in 0.12.0, 0.13.0 noch ist nic
 	nicht nur in die feature.xml sondern auch in plugins/pom.xml eintragen)
 - beziehung zu der parent pom.xml ist versionsgebunden, bedeutet dass bei der umstellung auf Xtext 2.0.2
 	müssen alle kinder pom.xmls angepasst werden
-- redundante pflege von: versionen, bundle- feature namen, IU typen (bundle oder feature) 
+- redundante pflege von: versionen, bundle- feature namen, IU typen (bundle oder feature, source oder test project) 
 - source features werden nicht generiert, source bundels nicht für alle plugins
 - dependency herkunft ist nicht klar, auf die dependency in xtext bundels muss strenger geachtet werden.
 	bedeutet wohl dependency range [x.x.x,y.y.y) alle (externe und interne) abhängigkeiten. Beispielsweise
@@ -29,3 +33,5 @@ maven.test.failure.ignore=true funktioniert nicht in 0.12.0, 0.13.0 noch ist nic
 - *.launch kann nicht benutzt werden
 - packaging dauert länger als beim Buckminster
 - tycho dokumentation ist rar
+- fragmente müssen explizit als Abhängigkeit deklariert werden (bsp. org.eclipse.core.filesystem)
+- probleme bei patched features 

@@ -55,8 +55,10 @@
 		<mwe.p2.repository>${eclipse.download}/modeling/m2t/xpand/updates/nightly</mwe.p2.repository>
 		<xpand.p2.repository>${eclipse.download}/modeling/emft/mwe/updates/nightly</xpand.p2.repository>
 		<orbit.p2.repository>${eclipse.download}/tools/orbit/downloads/drops/R20110523182458/repository</orbit.p2.repository>
+		<!-- org.eclipse.xtext.xtext.ui.graph dependency  auf org.eclipse.draw2d -->
+		<gef.p2.repository>${eclipse.download}/tools/gef/updates/releases</gef.p2.repository>
+
 		<eclipse.staging.area>/shared/download-staging.priv/modeling/tmf/xtext</eclipse.staging.area>
-		<!-- <download-publish-path>/home/data/httpd/download.eclipse.org/egit/updates-nightly</download-publish-path> -->
 	</properties>
 
 	<profiles>
@@ -70,7 +72,7 @@
 				</property>
 			</activation>
 			<properties>
-				<eclipse.p2.repository>${eclipse.download}/releases/galileo</eclipse.p2.repository>
+				<eclipse.p2.repository>${eclipse.download}/eclipse/updates/3.5</eclipse.p2.repository>
 				<platform-version>[3.5,3.6)</platform-version>
 				<emf.p2.repository>${eclipse.download}/modeling/emf/updates</emf.p2.repository>
 			</properties>
@@ -86,6 +88,7 @@
 			<properties>
 				<eclipse.p2.repository>${eclipse.download}/releases/helios</eclipse.p2.repository>
 				<platform-version>[3.6,3.7)</platform-version>
+				<emf.p2.repository>${eclipse.download}/modeling/emf/emf/updates/2.6</emf.p2.repository>
 			</properties>
 		</profile>
 		<profile>
@@ -99,7 +102,7 @@
 			<properties>
 				<eclipse.p2.repository>${eclipse.download}/releases/indigo</eclipse.p2.repository>
 				<platform-version>[3.7,3.8)</platform-version>
-				<emf.p2.repository>${eclipse.download}/modeling/emf/emf/updates/2.7milestones</emf.p2.repository>
+				<emf.p2.repository>${eclipse.download}/modeling/emf/emf/updates/2.7</emf.p2.repository>
 			</properties>
 		</profile>
 	</profiles>
@@ -151,6 +154,11 @@
 			<id>orbit</id>
 			<layout>p2</layout>
 			<url>${orbit.p2.repository}</url>
+		</repository>
+		<repository>
+			<id>gef</id>
+			<layout>p2</layout>
+			<url>${gef.p2.repository}</url>
 		</repository>
 	</repositories>
 
