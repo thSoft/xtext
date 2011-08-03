@@ -34,4 +34,4 @@ o die locale maven repository ~/.m2 ist etwas zu eigenständig, liegt aber wahrs
 - packaging dauert länger als beim Buckminster
 - tycho dokumentation ist rar
 - fragmente müssen explizit als Abhängigkeit deklariert werden (bsp. org.eclipse.core.filesystem)
-- probleme bei patched features 
+- probleme bei patched features
