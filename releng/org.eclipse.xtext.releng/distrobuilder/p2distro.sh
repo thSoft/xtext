@@ -3,6 +3,7 @@ cd `dirname $0`
 # Constatnts
 ECLIPSE_CODENAME="indigo"
 DISTRO_SUFFIX="xtext"
+
 REMOTE_REPOSITORIES="http://download.eclipse.org/eclipse/updates/3.7/"
 
 DIR_ROOT=$PWD # PWD is the working directory var
