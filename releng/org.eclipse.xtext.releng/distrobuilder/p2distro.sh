@@ -117,8 +117,8 @@ uncompress "$file" "$DIR_TMP/"
 
 echo "Starting p2 director..."
 $DIR_SOURCE_ECLIPSE/eclipse -nosplash -application org.eclipse.equinox.p2.director -consoleLog -repository $repository_urls\
- -installIU $INSTALL_IUS -destination $DIR_TMP/eclipse -profile SDKProfile\
- -profileProperties org.eclipse.update.install.features=true
+-installIU $INSTALL_IUS -destination $DIR_TMP/eclipse -profile SDKProfile\
+-profileProperties org.eclipse.update.install.features=true
 echo "installing done..."
 
 #echo "copying additional plugins... "
