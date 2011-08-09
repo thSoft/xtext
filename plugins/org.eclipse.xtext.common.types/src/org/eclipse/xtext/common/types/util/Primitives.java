@@ -109,7 +109,7 @@ public class Primitives {
 	}
 	
 	public boolean isPrimitive(JvmTypeReference type) {
-		return type.getType() instanceof JvmPrimitiveType;
+		return type!=null && type.getType() instanceof JvmPrimitiveType && !type.getType().eIsProxy();
 	}
 
 	public boolean isWrapperType(JvmTypeReference type) {
