@@ -2,9 +2,6 @@
 cd `dirname $0`
 # Constatnts
 ECLIPSE_CODENAME="indigo"
-DISTRO_SUFFIX="xtext"
-
-REMOTE_REPOSITORIES="http://download.eclipse.org/eclipse/updates/3.7/"
 
 DIR_ROOT=$PWD # PWD is the working directory var
 DIR_SOURCE_ECLIPSE="$DIR_ROOT/builder"                                  # eclipe to build with
@@ -18,7 +15,6 @@ IDEPREFIX="eclipse-SDK"
 ZIPSUFFIX=".zip"
 JARSUFFIX=".jar"
 
-SEDEXPRESSION="s/^$IDEPREFIX-\([0-9\.]*\)\([^-]*\)-\(.*\)/$IDEPREFIX-\1\2-$DISTRO_SUFFIX-$VERSION\2-\3/"
 
 # reads property from $ECLIPSE_CODENAME.properties file and set it as global var. Exp.: parseProperty VERSION
 function parseProperty()
@@ -30,9 +26,13 @@ local parsedValue=`sed '/^\#/d' $ECLIPSE_CODENAME/builder.properties | grep $__p
 eval $__propertyName="'$parsedValue'"
 }
 
-parseProperty VERSION
+#read properties
 parseProperty DISTRO_SUFFIX
-echo "Building $DISTRO_SUFFIX $VERSION"
+parseProperty REMOTE_REPOSITORIES
+parseProperty VERSION
+echo "
+Building $ECLIPSE_CODENAME for $DISTRO_SUFFIX $VERSION
+"
 
 parseProperty ADDITIONAL_IUS
 #echo "additional tools parsed: $ADDITIONAL_IUS"
@@ -46,6 +46,8 @@ INSTALL_IUS="$INSTALL_IUS,$DEPENDENCY_IUS,$ADDITIONAL_IUS"
 echo "IUs to install parsed:"
 echo "$INSTALL_IUS"|sed -e 's/\,/\
 /g'
+
+SEDEXPRESSION="s/^$IDEPREFIX-\([0-9\.]*\)\([^-]*\)-\(.*\)/$IDEPREFIX-\1\2-$DISTRO_SUFFIX-$VERSION\2-\3/"
 
 # uncompress to tmp folder
 # USAGE: uncompress file [ todir ]
@@ -116,9 +118,9 @@ echo "uncompress $file to $DIR_TMP"
 uncompress "$file" "$DIR_TMP/"
 
 echo "Starting p2 director..."
-$DIR_SOURCE_ECLIPSE/eclipse -nosplash -application org.eclipse.equinox.p2.director -consoleLog -repository $repository_urls\
- -installIU $INSTALL_IUS -destination $DIR_TMP/eclipse -profile SDKProfile\
- -profileProperties org.eclipse.update.install.features=true
+$DIR_SOURCE_ECLIPSE/eclipse -nosplash -application org.eclipse.equinox.p2.director -consoleLog -repository $repository_urls \
+-installIU $INSTALL_IUS -destination $DIR_TMP/eclipse -profile SDKProfile \
+-profileProperties org.eclipse.update.install.features=true
 echo "installing done..."
 
 #echo "copying additional plugins... "
@@ -132,7 +134,7 @@ echo "installing done..."
 #	-installIU org.easymock -destination $DIR_TMP/eclipse -profile SDKProfile -profileProperties org.eclipse.update.install.features=true
 #echo "installing Orbit bundles done..."
 
-# include xtext into filename
+# add distro suffix into filename
 renamed=`echo $file | sed $SEDEXPRESSION`
 cd $DIR_TMP
 # we are in $DIR_TMP now
