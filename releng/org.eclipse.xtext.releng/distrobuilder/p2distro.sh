@@ -1,10 +1,20 @@
-#!/bin/sh
-cd `dirname $0`
-# Constatnts
-ECLIPSE_CODENAME="indigo"
+#!/bin/bash
+cd `dirname $0` #change to p2distro.sh parent directory
+
 
 DIR_ROOT=$PWD # PWD is the working directory var
-DIR_SOURCE_ECLIPSE="$DIR_ROOT/builder"                                  # eclipe to build with
+
+#Parameters (first parameter ECLIPSE_CODENAME, second DIR_SOURCE_ECLIPSE (optional))
+DIR_SOURCE_ECLIPSE=$2        # eclipse to build with (optional) default "$DIR_ROOT/builder"
+if [ ! $2 ]
+then
+DIR_SOURCE_ECLIPSE="$DIR_ROOT/builder"
+fi
+echo "Using eclipse from $DIR_SOURCE_ECLIPSE"
+set -u #unseted variables assertion
+ECLIPSE_CODENAME=$1            #i.e. indigo
+exit 0
+# Constatnts
 DIR_TARGETPLATFORMS="$DIR_ROOT/$ECLIPSE_CODENAME/targetplatforms"		# platform depended eclipses where feature schould be installed
 DIR_OUTPUT="$DIR_ROOT/$ECLIPSE_CODENAME/output"							# produced distros folder
 DIR_TMP="$DIR_ROOT/$ECLIPSE_CODENAME/tmp"								# temp folder
@@ -33,7 +43,7 @@ parseProperty VERSION
 echo "
 Building $ECLIPSE_CODENAME for $DISTRO_SUFFIX $VERSION
 "
-
+parseProperty ECLIPSE_DOWNLOAD
 parseProperty ADDITIONAL_IUS
 #echo "additional tools parsed: $ADDITIONAL_IUS"
 
@@ -82,31 +92,59 @@ rm -r $DIR_OUTPUT/*
 echo "clean: finished"
 
 #collect repos
-cd $DIR_REPOSITORIES
-# we are in $DIR_REPOSITORIES now
-i=0
-repository_urls=""
-for file in *
-do
-if [[ "$file" == *".zip" ]] # only update zips
-then
-echo "adding repository $file"
-#jar:file:/Users/huebner/Downloads/emft-mwe-Update-1.0.0RC2.zip!/
-fqn="jar:file:$DIR_REPOSITORIES/$file!/"
-if [[ $i == 0 ]]
-then
-repository_urls="$REMOTE_REPOSITORIES,$fqn"
+if [[ -d "$DIR_REPOSITORIES" ]]
+then 
+	cd $DIR_REPOSITORIES
+	# we are in $DIR_REPOSITORIES now
+	i=0
+	repository_urls=""
+	for file in *
+	do
+        if [[ "$file" == *".zip" ]] # only update zips
+        then
+        echo "adding repository $file"
+        #jar:file:/Users/huebner/Downloads/emft-mwe-Update-1.0.0RC2.zip!/
+        fqn="jar:file:$DIR_REPOSITORIES/$file!/"
+            if [[ $i == 0 ]]
+            then
+                repository_urls="$REMOTE_REPOSITORIES,$fqn"
+            else
+                repository_urls="$repository_urls,$fqn"
+            fi
+        i=$i+1
+        fi
+	done
 else
-repository_urls="$repository_urls,$fqn"
+	repository_urls="$REMOTE_REPOSITORIES"
+	echo "local repositories folder is empty... using remote"
 fi
-i=$i+1
-fi
-done
+
 cd $DIR_ROOT
 # we are in root now
 
 # uncompress ides
+if [[ -d "$DIR_TARGETPLATFORMS" && "$(ls -A $DIR_TARGETPLATFORMS)" ]]
+then
+    echo "Using local targetplatforms folder"
+else
+    echo "$DIR_TARGETPLATFORMS does not exists. It will be created.
+target platforms will be downloaded from $ECLIPSE_DOWNLOAD"
+   mkdir -p $DIR_TARGETPLATFORMS
+   cd $DIR_TARGETPLATFORMS
+    #FTP download
+   ftp -n "$ECLIPSE_DOWNLOAD" <<ENDFTP
+   bin
+   prompt off
+   lcd $DIR_TARGETPLATFORMS
+   mget eclipse-SDK-*-win*.zip
+   mget eclipse-SDK-*-linux-gtk.tar.gz
+   mget eclipse-SDK-*-linux-gtk-x86_64.tar.gz
+   mget eclipse-SDK-*-macosx-cocoa*.gz
+ENDFTP
+fi
+
 cd $DIR_TARGETPLATFORMS
+echo "Start building..."
 # we are in $DIR_TARGETPLATFORMS now
 for file in *
 do
@@ -121,18 +159,14 @@ echo "Starting p2 director..."
 $DIR_SOURCE_ECLIPSE/eclipse -nosplash -application org.eclipse.equinox.p2.director -consoleLog -repository $repository_urls \
 -installIU $INSTALL_IUS -destination $DIR_TMP/eclipse -profile SDKProfile \
 -profileProperties org.eclipse.update.install.features=true
-echo "installing done..."
-
-#echo "copying additional plugins... "
-#cp -v $DIR_ADDITIONAL_PLUGINS/*.jar $DIR_TMP/eclipse/plugins/
-#echo "copying done..."
-
-#echo "Starting p2 director for orbit..."
-#-repository jar:file:$DIR_ROOT/orbit/orbit-S20100519200754.zip!/
-#$DIR_SOURCE_ECLIPSE/eclipse -nosplash -application org.eclipse.equinox.p2.director -consoleLog\
-#	-repository http://download.eclipse.org/tools/orbit/downloads/drops/S20100519200754/repository\
-#	-installIU org.easymock -destination $DIR_TMP/eclipse -profile SDKProfile -profileProperties org.eclipse.update.install.features=true
-#echo "installing Orbit bundles done..."
+if [[ $? == 0 ]]
+then
+    echo "installing done... exit code: $?"
+else
+    echo "installing failed... exit code: $?"
+    rm -r $DIR_TMP
+    exit 1
+fi
 
 # add distro suffix into filename
 renamed=`echo $file | sed $SEDEXPRESSION`
@@ -150,4 +184,5 @@ fi
 done
 # we are stil in $DIR_TARGETPLATFORMS
 rm -r $DIR_TMP
-exit 0 
+echo "Done..."
+exit 0
