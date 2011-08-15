@@ -207,8 +207,12 @@ public class XtextValidator extends AbstractDeclarativeValidator {
 	
 	@Check
 	public void checkGeneratedPackage(GeneratedMetamodel metamodel) {
-		Diagnostician diagnostician = (Diagnostician) getContext().get(EValidator.class);
-		checkGeneratedPackage(metamodel, diagnostician, getContext());
+		Map<Object, Object> context = getContext();
+		if (context != null) {
+			Diagnostician diagnostician = (Diagnostician) context.get(EValidator.class);
+			if (diagnostician != null)
+				checkGeneratedPackage(metamodel, diagnostician, context);
+		}
 	}
 
 	public void checkGeneratedPackage(GeneratedMetamodel metamodel, Diagnostician diagnostician, Map<?,?> params) {
@@ -559,7 +563,10 @@ public class XtextValidator extends AbstractDeclarativeValidator {
 	public boolean checkCrossReferenceTerminal(RuleCall call) {
 		if (call.getRule() != null && call.getRule().getType() != null) {
 			EClassifier type = call.getRule().getType().getClassifier();
-			if (type != null && EcorePackage.Literals.ESTRING != type) {
+			EDataType dataType = GrammarUtil.findEString(GrammarUtil.getGrammar(call));
+			if (dataType == null)
+				dataType = EcorePackage.Literals.ESTRING;
+			if (type != null && dataType != type) {
 				error(
 						"The rule '" + call.getRule().getName() + "' is not valid for a cross reference since it does not return "+
 						"an EString. You'll have to wrap it in a data type rule.", 

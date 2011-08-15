@@ -27,7 +27,6 @@ import org.eclipse.emf.ecore.EEnumLiteral;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcoreFactory;
-import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -507,24 +506,9 @@ public class Xtext2EcoreTransformer {
 		if (rule.getType() != null && rule.getType().getClassifier() != null)
 			return rule.getType().getClassifier();
 		if (rule instanceof TerminalRule || rule instanceof ParserRule && DatatypeRuleUtil.isDatatypeRule((ParserRule) rule)) {
-			if (isEcorePackageUsed(grammar, Sets.<Grammar>newLinkedHashSet()))
-				return EcorePackage.Literals.ESTRING;
+			return GrammarUtil.findEString(grammar);
 		}
 		return null;
-	}
-
-	private static boolean isEcorePackageUsed(Grammar grammar, Set<Grammar> checkedGrammars) {
-		if (!checkedGrammars.add(grammar))
-			return false;
-		for (AbstractMetamodelDeclaration decl: grammar.getMetamodelDeclarations()) {
-			if (EcorePackage.eINSTANCE.equals(decl.getEPackage()))
-				return true;
-		}
-		for (Grammar usedGrammar: grammar.getUsedGrammars()) {
-			if (isEcorePackageUsed(usedGrammar, checkedGrammars))
-				return true;
-		}
-		return false;
 	}
 
 	TypeRef getTypeRef(EClassifier classifier) {
@@ -789,7 +773,7 @@ public class Xtext2EcoreTransformer {
 		for (EClassifier eClassifier : referencedEPackage.getEClassifiers()) {
 			if (eClassifier instanceof EClass) {
 				EClass eClass = (EClass) eClassifier;
-				EClassifierInfo info = EClassifierInfo.createEClassInfo(eClass, generated, getGeneratedEPackageURIs());
+				EClassifierInfo info = EClassifierInfo.createEClassInfo(eClass, generated, getGeneratedEPackageURIs(), GrammarUtil.getGrammar(metaModel));
 				target.addInfo(metaModel, eClassifier.getName(), info);
 			}
 			else if (eClassifier instanceof EDataType) {
@@ -845,7 +829,8 @@ public class Xtext2EcoreTransformer {
 		if (info == null) {
 			// we assumend EString for terminal rules and datatype rules, so
 			// we have to do a look up in super grammar
-			if (typeRef.getClassifier() == EcorePackage.Literals.ESTRING) {
+			EDataType dataType = GrammarUtil.findEString(GrammarUtil.getGrammar(typeRef));
+			if (dataType != null && typeRef.getClassifier() == dataType) {
 				info = eClassifierInfos.getInfoOrNull(typeRef);
 				if (info != null)
 					return info;
@@ -893,7 +878,7 @@ public class Xtext2EcoreTransformer {
 
 			EClassifierInfo result;
 			if (classifier instanceof EClass)
-				result = EClassifierInfo.createEClassInfo((EClass) classifier, true, getGeneratedEPackageURIs());
+				result = EClassifierInfo.createEClassInfo((EClass) classifier, true, getGeneratedEPackageURIs(), GrammarUtil.getGrammar(typeRef));
 			else // datatype or enum
 				result = EClassifierInfo.createEDataTypeInfo((EDataType) classifier, true);
 

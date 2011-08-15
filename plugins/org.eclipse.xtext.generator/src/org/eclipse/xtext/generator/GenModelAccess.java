@@ -22,6 +22,7 @@ import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.plugin.EcorePlugin;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -77,32 +78,54 @@ public class GenModelAccess {
 	}
 
 	public static GenPackage getGenPackage(EPackage pkg, ResourceSet resourceSet) {
-		URI genModelURI = EcorePlugin.getEPackageNsURIToGenModelLocationMap().get(pkg.getNsURI());
+		String nsURI = pkg.getNsURI();
+		String location = null;
+		if (pkg.eResource() != null && pkg.eResource().getURI() != null)
+			location = pkg.eResource().getURI().toString();
+		Resource genModelResource = getGenModelResource(location, nsURI, resourceSet);
+		if (genModelResource != null) {
+			for (EObject model : genModelResource.getContents()) {
+				if (model instanceof GenModel) {
+					GenPackage genPkg = ((GenModel) model).findGenPackage(pkg);
+					if (genPkg != null) {
+						genPkg.getEcorePackage().getEClassifiers();
+						return genPkg;
+					}
+				}
+			}
+			throw new RuntimeException("No GenPackage for NsURI " + nsURI + " found in " + genModelResource.getURI());
+		}
+		throw new RuntimeException("No GenPackage for NsURI " + nsURI + ".");
+	}
+	
+	/**
+	 * @since 2.1
+	 */
+	public static Resource getGenModelResource(String locationInfo, String nsURI, ResourceSet resourceSet) {
+		URI genModelURI = EcorePlugin.getEPackageNsURIToGenModelLocationMap().get(nsURI);
 		if (genModelURI == null) {
-			String from = pkg.eResource() != null ? " from " + pkg.eResource().getURI() : "";
+			if (EcorePackage.eNS_URI.equals(nsURI)) // if we really want to use the registered ecore ...
+				return null;
+			
 			StringBuilder buf = new StringBuilder();
-			buf.append("Could not find a GenModel for EPackage '" + pkg.getNsURI() + "'" + from + "\n");
+			if (locationInfo != null && locationInfo.length() > 0)
+				locationInfo = " from " + locationInfo; 
+			else 
+				locationInfo = "";
+			buf.append("Could not find a GenModel for EPackage '").append(nsURI).append("'").append(locationInfo).append("\n");
 			buf.append("If the missing GenModel has been generated via " + EcoreGeneratorFragment.class.getSimpleName());
 			buf.append(" make sure to run it first in the workflow.\n");
 			buf.append("If you have a *.genmodel-file, make sure to register it via StandaloneSetup.registerGenModelFile(String)");
 			throw new RuntimeException(buf.toString());
 		}
 		if (resourceSet == null)
-			throw new RuntimeException("There is no ResourceSet for EPackage '" + pkg.getNsURI() + "'. "
+			throw new RuntimeException("There is no ResourceSet for EPackage '" + nsURI + "'. "
 					+ "Please make sure the EPackage has been loaded from a .ecore file "
 					+ "and not from the generated Java file.");
 		Resource genModelResource = resourceSet.getResource(genModelURI, true);
 		if (genModelResource == null)
 			throw new RuntimeException("Error loading GenModel " + genModelURI);
-		for (EObject model : genModelResource.getContents())
-			if (model instanceof GenModel) {
-				GenPackage genPkg = ((GenModel) model).findGenPackage(pkg);
-				if (genPkg != null) {
-					genPkg.getEcorePackage().getEClassifiers();
-					return genPkg;
-				}
-			}
-		throw new RuntimeException("No GenPackage for NsURI " + pkg.getNsURI() + " found in " + genModelURI);
+		return genModelResource;
 	}
 
 	public static String getGenTypeLiteral(EClassifier classifier, ResourceSet resourceSet) {

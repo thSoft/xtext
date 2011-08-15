@@ -31,6 +31,7 @@ import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.xtext.resource.IResourceDescription;
+import org.eclipse.xtext.resource.IResourceDescriptions;
 import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.resource.impl.ChangedResourceDescriptionDelta;
 import org.eclipse.xtext.resource.impl.DefaultResourceDescriptionDelta;
@@ -248,6 +249,9 @@ public class DirtyStateEditorSupport implements IXtextModelListener, IResourceDe
 	@Inject
 	private IConcurrentEditingCallback concurrentEditingWarningDialog;
 	
+	@Inject
+	private IResourceDescriptions resourceDescriptions;
+	
 	private volatile IDirtyStateEditorSupportClient currentClient;
 	
 	private volatile boolean isDirty;
@@ -336,6 +340,9 @@ public class DirtyStateEditorSupport implements IXtextModelListener, IResourceDe
 			throw new IllegalStateException("Was configured with another client or not configured at all."); //$NON-NLS-1$
 		dirtyStateManager.discardDirtyState(delegatingClientAwareResource);
 		isDirty = false;
+		IResourceDescription cleanDescription = resourceDescriptions.getResourceDescription(delegatingClientAwareResource.getURI());
+		if (cleanDescription != null)
+			dirtyResource.copyState(cleanDescription);
 	}
 	
 	public void descriptionsChanged(final IResourceDescription.Event event) {
@@ -435,6 +442,9 @@ public class DirtyStateEditorSupport implements IXtextModelListener, IResourceDe
 		return dirtyStateManager;
 	}
 
+	/**
+	 * @noreference This method is not intended to be referenced by clients.
+	 */
 	public void setDirtyStateManager(IDirtyStateManager dirtyStateManager) {
 		this.dirtyStateManager = dirtyStateManager;
 	}
@@ -443,10 +453,16 @@ public class DirtyStateEditorSupport implements IXtextModelListener, IResourceDe
 		return stateChangeEventBroker;
 	}
 
+	/**
+	 * @noreference This method is not intended to be referenced by clients.
+	 */
 	public void setStateChangeEventBroker(IStateChangeEventBroker stateChangeEventBroker) {
 		this.stateChangeEventBroker = stateChangeEventBroker;
 	}
 
+	/**
+	 * @noreference This method is not intended to be referenced by clients.
+	 */
 	public void setConcurrentEditingWarningDialog(IConcurrentEditingCallback concurrentEditingWarningDialog) {
 		this.concurrentEditingWarningDialog = concurrentEditingWarningDialog;
 	}
@@ -455,6 +471,9 @@ public class DirtyStateEditorSupport implements IXtextModelListener, IResourceDe
 		return concurrentEditingWarningDialog;
 	}
 
+	/**
+	 * @noreference This method is not intended to be referenced by clients.
+	 */
 	public void setDirtyResource(DocumentBasedDirtyResource dirtyResource) {
 		this.dirtyResource = dirtyResource;
 	}
@@ -463,4 +482,11 @@ public class DirtyStateEditorSupport implements IXtextModelListener, IResourceDe
 		return dirtyResource;
 	}
 
+	/**
+	 * @since 2.1
+	 * @noreference This method is not intended to be referenced by clients.
+	 */
+	public void setResourceDescriptions(IResourceDescriptions resourceDescriptions) {
+		this.resourceDescriptions = resourceDescriptions;
+	}
 }
