@@ -1,0 +1,63 @@
+Xtext build requirements
+
+Building
+	- reuse (project specific) compiler,  encoding setting:
+		consider to look in eclipse project .setting folder
+	- parse build.properties for bin/src.includes/excludes (see http://help.eclipse.org/indigo/index.jsp?topic=/org.eclipse.pde.doc.user/reference/pde_feature_generating_build.htm)
+	- create javadoc
+	- define the range generation rules for required bundles/features (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=309147)
+	- source feature generation (use pde?)
+
+Create p2 repository
+	- bypassing variables to the customizable category.xml (i.e. BUILD_ID, BUILD_ALIAS)
+	- sign content
+	- adding download statistic tags to the artifacts.xml (xsl transformation, build alias depended):
+		see http://wiki.eclipse.org/Equinox_p2_download_stats
+
+Testing
+	- allow to use .launch configuration
+	
+Packaging
+	- produce p2 repository zip
+	- produce zip for a given feature i.e. runtime:
+		zip should include all the feature content and additional 3rd party bundles
+	- package javadoc
+	
+Promotion
+	- adding mirror URL to the corresponding artifact.jar/.xml (it's build type and target location depended):
+		see http://wiki.eclipse.org/Equinox/p2/p2.mirrorsURL
+	nice to have:
+		- move p2/feature/javadoc zips to downloads location
+		- move/unzip p2 repository to the update site location 
+		- keep only the latest five nightly builds
+	
+
+Maintenance
+	- parent pom version handling (m2e tools?):
+		change references automatically due to parent pom version change instead of find and replace
+	- transitive pom.xml generator, generate pom.xml for subfolders:
+		 given Folder structure is 
+		 	root
+				|_ features
+				|  |_ feature.x
+				|  |	|_ pom.xml
+				|  |_ feature.y
+				|  |	|_ pom.xml
+				|  |_ pom.xml <-- features parent pom
+				|
+				|_ plugins
+				|   |_ plugin.x
+				|   |	|_ pom.xml
+				|   |_ plugin.y
+				|   |	|_ pom.xml
+				|   |_ pom.xml <-- plugins parent pom
+				|_ releng
+				|	|_ org.eclipse.xtext-xtext.parent
+				|		|_ pom.xml <-- Xtext parent pom
+				|_ ...
+				|	|_ ...
+				|	|_ pom.xml <-- tests parent pom
+				|
+				|_ pom.xml <-- root pom
+				
+				
