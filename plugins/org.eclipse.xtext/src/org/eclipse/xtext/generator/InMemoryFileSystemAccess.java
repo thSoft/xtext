@@ -19,12 +19,13 @@ public class InMemoryFileSystemAccess extends AbstractFileSystemAccess {
 	
 	private Map<String, CharSequence> files = newHashMap();
 
-	public void generateFile(String fileName, String slot, CharSequence contents) {
-		files.put(fileName, contents);
+	public void generateFile(String fileName, String outputConfigName, CharSequence contents) {
+		files.put(outputConfigName+fileName, contents);
 	}
 
-	public void deleteFile(String fileName) {
-		files.remove(fileName);
+	@Override
+	public void deleteFile(String fileName, String outputConfigName) {
+		files.remove(outputConfigName+fileName);
 	}
 	
 	public Map<String, CharSequence> getFiles() {

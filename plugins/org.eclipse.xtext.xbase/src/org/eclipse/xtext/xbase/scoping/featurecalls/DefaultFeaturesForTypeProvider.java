@@ -7,39 +7,73 @@
  *******************************************************************************/
 package org.eclipse.xtext.xbase.scoping.featurecalls;
 
-import static com.google.common.collect.Iterables.*;
-import static java.util.Collections.*;
-
 import java.util.Collections;
+import java.util.List;
 
-import org.eclipse.xtext.common.types.JvmAnyTypeReference;
-import org.eclipse.xtext.common.types.JvmConstructor;
 import org.eclipse.xtext.common.types.JvmDeclaredType;
 import org.eclipse.xtext.common.types.JvmFeature;
-import org.eclipse.xtext.common.types.JvmMultiTypeReference;
+import org.eclipse.xtext.common.types.JvmType;
 import org.eclipse.xtext.common.types.JvmTypeReference;
+import org.eclipse.xtext.common.types.util.TypeReferences;
+import org.eclipse.xtext.xbase.typing.SynonymTypesProvider;
 
-import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
 
 /**
  * @author Sven Efftinge - Initial contribution and API
+ * @author Sebastian Zarnekow
  */
 public class DefaultFeaturesForTypeProvider implements IFeaturesForTypeProvider {
 
-	public Iterable<? extends JvmFeature> getFeaturesForType(JvmTypeReference declType) {
-		if (declType instanceof JvmAnyTypeReference || declType instanceof JvmMultiTypeReference) {
+	@Inject
+	private TypeReferences typeReferences;
+	
+	@Inject
+	private SynonymTypesProvider synonymesProvider;
+
+	public Iterable<JvmFeature> getFeaturesByName(String name, JvmTypeReference declarator,
+			Iterable<JvmTypeReference> hierarchy) {
+		return doGetFeaturesByName(name, declarator, hierarchy);
+	}
+	
+	protected Iterable<JvmFeature> doGetFeaturesByName(String name, JvmTypeReference declarator,
+			Iterable<JvmTypeReference> hierarchy) {
+		if (declarator == null)
 			return Collections.emptyList();
+		List<JvmFeature> result = Lists.newArrayList();
+		JvmType rawType = typeReferences.getRawType(declarator);
+		if (rawType instanceof JvmDeclaredType) {
+			collectFeatures(name, rawType, result);
+		} else if (rawType == null) { // TODO remove special treatment of multi types and other specialized type reference implementations
+			for(JvmTypeReference reference: hierarchy) {
+				JvmType referenceRawType = typeReferences.getRawType(reference);
+				collectFeatures(name, referenceRawType, result);
+			}
+			return result;
 		}
-		if (declType != null && declType.getType() instanceof JvmDeclaredType) {
-			return filter(filter(((JvmDeclaredType)declType.getType()).getMembers(), JvmFeature.class), new Predicate<JvmFeature>() {
-				public boolean apply(JvmFeature input) {
-					return !(input instanceof JvmConstructor);
-				}
-			});
+		for(JvmTypeReference synonym: synonymesProvider.getSynonymTypes(declarator)) {
+			JvmType synonymRawType = typeReferences.getRawType(synonym);
+			collectFeatures(name, synonymRawType, result);
 		}
-		return emptySet();
+		return result;
 	}
 
+	protected void collectFeatures(String name, JvmType rawType, List<JvmFeature> result) {
+		if (rawType instanceof JvmDeclaredType) {
+			if (name != null)
+				Iterables.addAll(result, ((JvmDeclaredType) rawType).findAllFeaturesByName(name));
+			else
+				Iterables.addAll(result, ((JvmDeclaredType) rawType).getAllFeatures());
+		}
+	}
+	
+	public Iterable<JvmFeature> getAllFeatures(JvmTypeReference declarator,
+			Iterable<JvmTypeReference> hierarchy) {
+		return doGetFeaturesByName(null, declarator, hierarchy);
+	}
+	
 	public boolean isExtensionProvider() {
 		return false;
 	}

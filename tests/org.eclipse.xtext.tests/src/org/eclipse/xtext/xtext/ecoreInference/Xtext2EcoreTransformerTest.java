@@ -42,6 +42,8 @@ import org.eclipse.xtext.util.OnChangeEvictingCache;
 import org.eclipse.xtext.xtext.XtextLinker;
 import org.eclipse.xtext.xtext.XtextLinker.PackageRemover;
 
+import com.google.common.base.Joiner;
+
 /**
  * @author Jan Köhnlein - Initial contribution and API
  * @author Heiko Behrens
@@ -423,7 +425,7 @@ public class Xtext2EcoreTransformerTest extends AbstractXtextTests {
 	public void testFeaturesAndInheritanceOfNestedRuleCalls() throws Exception {
 		String grammar = "grammar test with org.eclipse.xtext.common.Terminals" +
 				" generate test 'http://test'";
-		grammar += " RuleA: ((RuleB|RuleC featureC1=ID)? featureBC=ID | (RuleC|RuleD featureD1=ID) featureCD=ID) featureA=ID;";
+		grammar += " RuleA: ((RuleB|RuleC featureC1=ID) featureBC=ID | (RuleC|RuleD featureD1=ID) featureCD=ID) featureA=ID;";
 		grammar += " RuleB: featureB2=ID;";
 		grammar += " RuleC: featureC2=ID;";
 		grammar += " RuleD: featureD2=ID;";
@@ -448,8 +450,51 @@ public class Xtext2EcoreTransformerTest extends AbstractXtextTests {
 		assertEquals(ruleA, ruleD.getESuperTypes().get(0));
 
 		// test all features are separated
+		assertEquals(1, ruleA.getEAttributes().size());
+		assertAttributeConfiguration(ruleA, 0, "featureA", "EString");
+		assertEquals(2, ruleB.getEAttributes().size());
+		assertAttributeConfiguration(ruleB, 0, "featureBC", "EString");
+		assertAttributeConfiguration(ruleB, 1, "featureB2", "EString");
+		assertEquals(4, ruleC.getEAttributes().size());
+		assertAttributeConfiguration(ruleC, 0, "featureC1", "EString");
+		assertAttributeConfiguration(ruleC, 1, "featureBC", "EString");
+		assertAttributeConfiguration(ruleC, 2, "featureCD", "EString");
+		assertAttributeConfiguration(ruleC, 3, "featureC2", "EString");
+		assertEquals(3, ruleD.getEAttributes().size());
+		assertAttributeConfiguration(ruleD, 0, "featureD1", "EString");
+		assertAttributeConfiguration(ruleD, 1, "featureCD", "EString");
+		assertAttributeConfiguration(ruleD, 2, "featureD2", "EString");
+	}
+	
+	public void testFeaturesAndInheritanceOfNestedRuleCalls_02() throws Exception {
+		String grammar = "grammar test with org.eclipse.xtext.common.Terminals" +
+				" generate test 'http://test'";
+		grammar += " RuleA: ((RuleB|RuleC featureC1=ID)? featureABC=ID | (RuleC|RuleD featureD1=ID) featureCD=ID) featureA=ID;";
+		grammar += " RuleB: featureB2=ID;";
+		grammar += " RuleC: featureC2=ID;";
+		grammar += " RuleD: featureD2=ID;";
+		EPackage ePackage = getEPackageFromGrammar(grammar);
+		assertEquals(4, ePackage.getEClassifiers().size());
+		EClass ruleA = (EClass) ePackage.getEClassifier("RuleA");
+		assertNotNull(ruleA);
+		EClass ruleB = (EClass) ePackage.getEClassifier("RuleB");
+		assertNotNull(ruleB);
+		EClass ruleC = (EClass) ePackage.getEClassifier("RuleC");
+		assertNotNull(ruleC);
+		EClass ruleD = (EClass) ePackage.getEClassifier("RuleD");
+		assertNotNull(ruleD);
+
+		// test inheritance
+		assertTrue(ruleA.getESuperTypes().isEmpty());
+		assertEquals(1, ruleB.getESuperTypes().size());
+		assertEquals(ruleA, ruleB.getESuperTypes().get(0));
+		assertEquals(1, ruleC.getESuperTypes().size());
+		assertEquals(ruleA, ruleC.getESuperTypes().get(0));
+		assertEquals(1, ruleD.getESuperTypes().size());
+		assertEquals(ruleA, ruleD.getESuperTypes().get(0));
+
 		assertEquals(2, ruleA.getEAttributes().size());
-		assertAttributeConfiguration(ruleA, 0, "featureBC", "EString");
+		assertAttributeConfiguration(ruleA, 0, "featureABC", "EString");
 		assertAttributeConfiguration(ruleA, 1, "featureA", "EString");
 		assertEquals(1, ruleB.getEAttributes().size());
 		assertAttributeConfiguration(ruleB, 0, "featureB2", "EString");
@@ -1436,7 +1481,7 @@ public class Xtext2EcoreTransformerTest extends AbstractXtextTests {
 		final String grammarAsString = 
 			"grammar test with org.eclipse.xtext.enumrules.EnumRulesTestLanguage\n" +
 			"import 'http://www.eclipse.org/xtext/common/JavaVMTypes' as types\n" +
-			"Array returns types::JvmArrayType: componentType=Array;"; 
+			"DeclaredType returns types::JvmDeclaredType: superTypes+=DeclaredType;"; 
 		XtextResource resource = getResourceFromStringAndExpect(grammarAsString, 1);
 		assertTrue(resource.getErrors().get(0).getMessage().contains("JvmTypeReference"));
 	}
@@ -1445,7 +1490,7 @@ public class Xtext2EcoreTransformerTest extends AbstractXtextTests {
 		final String grammarAsString = 
 			"grammar test with org.eclipse.xtext.enumrules.EnumRulesTestLanguage\n" +
 			"import 'http://www.eclipse.org/xtext/common/JavaVMTypes' as types\n" +
-			"Array returns types::JvmArrayType: componentType=STRING;"; 
+			"Array returns types::JvmGenericArrayTypeReference: componentType=STRING;"; 
 		XtextResource resource = getResourceFromStringAndExpect(grammarAsString, 1);
 		assertTrue(resource.getErrors().get(0).getMessage().contains("JvmTypeReference"));
 	}
@@ -1454,8 +1499,7 @@ public class Xtext2EcoreTransformerTest extends AbstractXtextTests {
 		final String grammarAsString = 
 			"grammar test with org.eclipse.xtext.enumrules.EnumRulesTestLanguage\n" +
 			"import 'http://www.eclipse.org/xtext/common/JavaVMTypes' as types\n" +
-			"Array returns types::JvmArrayType: componentType+=TypeRef;\n" +
-			"TypeRef returns types::JvmTypeReference: 'void';"; 
+			"DeclaredType returns types::JvmDeclaredType: superTypes=[types::JvmTypeReference];"; 
 		XtextResource resource = getResourceFromStringAndExpect(grammarAsString, 1);
 		assertTrue(resource.getErrors().get(0).getMessage().contains("cardinality"));
 	}
@@ -1464,7 +1508,7 @@ public class Xtext2EcoreTransformerTest extends AbstractXtextTests {
 		final String grammarAsString = 
 			"grammar test with org.eclipse.xtext.enumrules.EnumRulesTestLanguage\n" +
 			"import 'http://www.eclipse.org/xtext/common/JavaVMTypes' as types\n" +
-			"Array returns types::JvmArrayType: componentType=[types::JvmTypeReference];"; 
+			"DeclaredType returns types::JvmDeclaredType: superTypes+=[types::JvmTypeReference];"; 
 		XtextResource resource = getResourceFromStringAndExpect(grammarAsString, 1);
 		assertTrue(resource.getErrors().get(0).getMessage().contains("containment"));
 	}
@@ -1478,5 +1522,446 @@ public class Xtext2EcoreTransformerTest extends AbstractXtextTests {
 			"Element returns xbase::XExpression : {Element} 'Hello';\n" + 
 			"terminal ID : '^'?('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')*;"; 
 		getResourceFromString(grammarAsString);
+	}
+	
+	public void testBug346685_a01() throws Exception {
+		String grammar = "grammar test with org.eclipse.xtext.common.Terminals" +
+				" generate test 'http://test'";
+		grammar += " RuleA returns TypeA: RuleB ({TypeC.x=current} 'x' | {TypeD.x=current} 'y')? name+=STRING;";
+		grammar += " RuleB returns TypeB: {TypeB} 'ignore';";
+		EPackage ePackage = getEPackageFromGrammar(grammar);
+
+		assertEquals(4, ePackage.getEClassifiers().size());
+		EClass typeA = (EClass) ePackage.getEClassifier("TypeA");
+		assertNotNull(typeA);
+		assertNotNull(typeA.getEStructuralFeature("name"));
+		assertEquals(1, typeA.getEStructuralFeatures().size());
+		
+		EClass typeB = (EClass) ePackage.getEClassifier("TypeB");
+		assertNotNull(typeB);
+		assertTrue(typeB.getEStructuralFeatures().isEmpty());
+		
+		EClass typeC = (EClass) ePackage.getEClassifier("TypeC");
+		assertNotNull(typeC);
+		assertNotNull(typeC.getEStructuralFeature("x"));
+		assertEquals(1, typeC.getEStructuralFeatures().size());
+		
+		EClass typeD = (EClass) ePackage.getEClassifier("TypeD");
+		assertNotNull(typeD);
+		assertNotNull(typeD.getEStructuralFeature("x"));
+		assertEquals(1, typeD.getEStructuralFeatures().size());
+	}
+	
+	public void testBug346685_a02() throws Exception {
+		String grammar = "grammar test with org.eclipse.xtext.common.Terminals" +
+				" generate test 'http://test'";
+		grammar += " RuleA returns TypeA: RuleB ({TypeC.x=current} 'x' | {TypeD.x=current} 'y') name+=STRING;";
+		grammar += " RuleB returns TypeB: {TypeB} 'ignore';";
+		EPackage ePackage = getEPackageFromGrammar(grammar);
+
+		assertEquals(4, ePackage.getEClassifiers().size());
+		EClass typeA = (EClass) ePackage.getEClassifier("TypeA");
+		assertNotNull(typeA);
+		assertTrue(typeA.getEStructuralFeatures().isEmpty());
+		
+		EClass typeB = (EClass) ePackage.getEClassifier("TypeB");
+		assertNotNull(typeB);
+		assertTrue(typeB.getEStructuralFeatures().isEmpty());
+		
+		EClass typeC = (EClass) ePackage.getEClassifier("TypeC");
+		assertNotNull(typeC);
+		assertNotNull(typeC.getEStructuralFeature("x"));
+		assertNotNull(typeC.getEStructuralFeature("name"));
+		assertEquals(2, typeC.getEStructuralFeatures().size());
+		
+		EClass typeD = (EClass) ePackage.getEClassifier("TypeD");
+		assertNotNull(typeD);
+		assertNotNull(typeD.getEStructuralFeature("x"));
+		assertNotNull(typeD.getEStructuralFeature("name"));
+		assertEquals(2, typeD.getEStructuralFeatures().size());
+	}
+	
+	public void testBug346685_a03() throws Exception {
+		String grammar = "grammar test with org.eclipse.xtext.common.Terminals" +
+				" generate test 'http://test'";
+		grammar += " RuleA returns TypeA: RuleB ({TypeC.x=current} 'x' | {TypeD.x=current} 'y')? name+=STRING;";
+		grammar += " RuleB returns TypeB: {TypeB} name+=ID;";
+		EPackage ePackage = getEPackageFromGrammar(grammar);
+
+		assertEquals(4, ePackage.getEClassifiers().size());
+		EClass typeA = (EClass) ePackage.getEClassifier("TypeA");
+		assertNotNull(typeA);
+		assertNotNull(typeA.getEStructuralFeature("name"));
+		assertEquals(1, typeA.getEStructuralFeatures().size());
+		
+		EClass typeB = (EClass) ePackage.getEClassifier("TypeB");
+		assertNotNull(typeB);
+		assertTrue(typeB.getEStructuralFeatures().isEmpty());
+		
+		EClass typeC = (EClass) ePackage.getEClassifier("TypeC");
+		assertNotNull(typeC);
+		assertNotNull(typeC.getEStructuralFeature("x"));
+		assertEquals(1, typeC.getEStructuralFeatures().size());
+		
+		EClass typeD = (EClass) ePackage.getEClassifier("TypeD");
+		assertNotNull(typeD);
+		assertNotNull(typeD.getEStructuralFeature("x"));
+		assertEquals(1, typeD.getEStructuralFeatures().size());
+	}
+	
+	public void testBug346685_a04() throws Exception {
+		String grammar = "grammar test with org.eclipse.xtext.common.Terminals" +
+				" generate test 'http://test'";
+		grammar += " RuleA returns TypeA: RuleB ({TypeC.x=current} 'x' | {TypeD.x=current} 'y') name+=STRING;";
+		grammar += " RuleB returns TypeB: {TypeB} name+=ID;";
+		EPackage ePackage = getEPackageFromGrammar(grammar);
+
+		assertEquals(4, ePackage.getEClassifiers().size());
+		EClass typeA = (EClass) ePackage.getEClassifier("TypeA");
+		assertNotNull(typeA);
+		assertNotNull(typeA.getEStructuralFeature("name"));
+		assertEquals(1, typeA.getEStructuralFeatures().size());
+		
+		EClass typeB = (EClass) ePackage.getEClassifier("TypeB");
+		assertNotNull(typeB);
+		assertTrue(typeB.getEStructuralFeatures().isEmpty());
+		
+		EClass typeC = (EClass) ePackage.getEClassifier("TypeC");
+		assertNotNull(typeC);
+		assertNotNull(typeC.getEStructuralFeature("x"));
+		assertEquals(1, typeC.getEStructuralFeatures().size());
+		
+		EClass typeD = (EClass) ePackage.getEClassifier("TypeD");
+		assertNotNull(typeD);
+		assertNotNull(typeD.getEStructuralFeature("x"));
+		assertEquals(1, typeD.getEStructuralFeatures().size());
+	}
+	
+	public void testBug346685_a05() throws Exception {
+		String grammar = "grammar test with org.eclipse.xtext.common.Terminals" +
+				" generate test 'http://test'";
+		grammar += " RuleA returns TypeA: RuleB? ({TypeC.x=current} 'x' | {TypeD.x=current} 'y')? name+=STRING;";
+		grammar += " RuleB returns TypeB: {TypeB} 'ignore';";
+		EPackage ePackage = getEPackageFromGrammar(grammar);
+
+		assertEquals(4, ePackage.getEClassifiers().size());
+		EClass typeA = (EClass) ePackage.getEClassifier("TypeA");
+		assertNotNull(typeA);
+		assertNotNull(typeA.getEStructuralFeature("name"));
+		assertEquals(1, typeA.getEStructuralFeatures().size());
+		
+		EClass typeB = (EClass) ePackage.getEClassifier("TypeB");
+		assertNotNull(typeB);
+		assertTrue(typeB.getEStructuralFeatures().isEmpty());
+		
+		EClass typeC = (EClass) ePackage.getEClassifier("TypeC");
+		assertNotNull(typeC);
+		assertNotNull(typeC.getEStructuralFeature("x"));
+		assertEquals(1, typeC.getEStructuralFeatures().size());
+		
+		EClass typeD = (EClass) ePackage.getEClassifier("TypeD");
+		assertNotNull(typeD);
+		assertNotNull(typeD.getEStructuralFeature("x"));
+		assertEquals(1, typeD.getEStructuralFeatures().size());
+	}
+	
+	public void testBug346685_a06() throws Exception {
+		String grammar = "grammar test with org.eclipse.xtext.common.Terminals" +
+				" generate test 'http://test'";
+		grammar += " RuleA returns TypeA: RuleB? ({TypeC.x=current} 'x' | {TypeD.x=current} 'y') name+=STRING;";
+		grammar += " RuleB returns TypeB: {TypeB} 'ignore';";
+		EPackage ePackage = getEPackageFromGrammar(grammar);
+
+		assertEquals(4, ePackage.getEClassifiers().size());
+		EClass typeA = (EClass) ePackage.getEClassifier("TypeA");
+		assertNotNull(typeA);
+		assertTrue(typeA.getEStructuralFeatures().isEmpty());
+		
+		EClass typeB = (EClass) ePackage.getEClassifier("TypeB");
+		assertNotNull(typeB);
+		assertTrue(typeB.getEStructuralFeatures().isEmpty());
+		
+		EClass typeC = (EClass) ePackage.getEClassifier("TypeC");
+		assertNotNull(typeC);
+		assertNotNull(typeC.getEStructuralFeature("x"));
+		assertNotNull(typeC.getEStructuralFeature("name"));
+		assertEquals(2, typeC.getEStructuralFeatures().size());
+		
+		EClass typeD = (EClass) ePackage.getEClassifier("TypeD");
+		assertNotNull(typeD);
+		assertNotNull(typeD.getEStructuralFeature("x"));
+		assertNotNull(typeD.getEStructuralFeature("name"));
+		assertEquals(2, typeD.getEStructuralFeatures().size());
+	}
+	
+	public void testBug346685_a07() throws Exception {
+		String grammar = "grammar test with org.eclipse.xtext.common.Terminals" +
+				" generate test 'http://test'";
+		grammar += " RuleA returns TypeA: RuleB? ({TypeC.x=current} 'x' | {TypeD.x=current} 'y')? name+=STRING;";
+		grammar += " RuleB returns TypeB: {TypeB} name+=ID;";
+		EPackage ePackage = getEPackageFromGrammar(grammar);
+
+		assertEquals(4, ePackage.getEClassifiers().size());
+		EClass typeA = (EClass) ePackage.getEClassifier("TypeA");
+		assertNotNull(typeA);
+		assertNotNull(typeA.getEStructuralFeature("name"));
+		assertEquals(1, typeA.getEStructuralFeatures().size());
+		
+		EClass typeB = (EClass) ePackage.getEClassifier("TypeB");
+		assertNotNull(typeB);
+		assertTrue(typeB.getEStructuralFeatures().isEmpty());
+		
+		EClass typeC = (EClass) ePackage.getEClassifier("TypeC");
+		assertNotNull(typeC);
+		assertNotNull(typeC.getEStructuralFeature("x"));
+		assertEquals(1, typeC.getEStructuralFeatures().size());
+		
+		EClass typeD = (EClass) ePackage.getEClassifier("TypeD");
+		assertNotNull(typeD);
+		assertNotNull(typeD.getEStructuralFeature("x"));
+		assertEquals(1, typeD.getEStructuralFeatures().size());
+	}
+	
+	public void testBug346685_a08() throws Exception {
+		String grammar = "grammar test with org.eclipse.xtext.common.Terminals" +
+				" generate test 'http://test'";
+		grammar += " RuleA returns TypeA: RuleB? ({TypeC.x=current} 'x' | {TypeD.x=current} 'y') name+=STRING;";
+		grammar += " RuleB returns TypeB: {TypeB} name+=ID;";
+		EPackage ePackage = getEPackageFromGrammar(grammar);
+
+		assertEquals(4, ePackage.getEClassifiers().size());
+		EClass typeA = (EClass) ePackage.getEClassifier("TypeA");
+		assertNotNull(typeA);
+		assertNotNull(typeA.getEStructuralFeature("name"));
+		assertEquals(1, typeA.getEStructuralFeatures().size());
+		
+		EClass typeB = (EClass) ePackage.getEClassifier("TypeB");
+		assertNotNull(typeB);
+		assertTrue(typeB.getEStructuralFeatures().isEmpty());
+		
+		EClass typeC = (EClass) ePackage.getEClassifier("TypeC");
+		assertNotNull(typeC);
+		assertNotNull(typeC.getEStructuralFeature("x"));
+		assertEquals(1, typeC.getEStructuralFeatures().size());
+		
+		EClass typeD = (EClass) ePackage.getEClassifier("TypeD");
+		assertNotNull(typeD);
+		assertNotNull(typeD.getEStructuralFeature("x"));
+		assertEquals(1, typeD.getEStructuralFeatures().size());
+	}
+	
+	public void testBug346685_a09() throws Exception {
+		String grammar = "grammar test with org.eclipse.xtext.common.Terminals" +
+				" generate test 'http://test'";
+		grammar += " RuleA returns TypeA: RuleB ({TypeC.x=current} 'x' | {TypeD.x=current} 'y' | 'z')? name+=STRING;";
+		grammar += " RuleB returns TypeB: {TypeB} 'ignore';";
+		EPackage ePackage = getEPackageFromGrammar(grammar);
+
+		assertEquals(4, ePackage.getEClassifiers().size());
+		EClass typeA = (EClass) ePackage.getEClassifier("TypeA");
+		assertNotNull(typeA);
+		assertNotNull(typeA.getEStructuralFeature("name"));
+		assertEquals(1, typeA.getEStructuralFeatures().size());
+		
+		EClass typeB = (EClass) ePackage.getEClassifier("TypeB");
+		assertNotNull(typeB);
+		assertTrue(typeB.getEStructuralFeatures().isEmpty());
+		
+		EClass typeC = (EClass) ePackage.getEClassifier("TypeC");
+		assertNotNull(typeC);
+		assertNotNull(typeC.getEStructuralFeature("x"));
+		assertEquals(1, typeC.getEStructuralFeatures().size());
+		
+		EClass typeD = (EClass) ePackage.getEClassifier("TypeD");
+		assertNotNull(typeD);
+		assertNotNull(typeD.getEStructuralFeature("x"));
+		assertEquals(1, typeD.getEStructuralFeatures().size());
+	}
+	
+	public void testBug346685_a10() throws Exception {
+		String grammar = "grammar test with org.eclipse.xtext.common.Terminals" +
+				" generate test 'http://test'";
+		grammar += " RuleA returns TypeA: RuleB ({TypeC.x=current} 'x' | {TypeD.x=current} 'y' | 'z') name+=STRING;";
+		grammar += " RuleB returns TypeB: {TypeB} 'ignore';";
+		EPackage ePackage = getEPackageFromGrammar(grammar);
+
+		assertEquals(4, ePackage.getEClassifiers().size());
+		EClass typeA = (EClass) ePackage.getEClassifier("TypeA");
+		assertNotNull(typeA);
+		assertNotNull(typeA.getEStructuralFeature("name"));
+		assertEquals(1, typeA.getEStructuralFeatures().size());
+		
+		EClass typeB = (EClass) ePackage.getEClassifier("TypeB");
+		assertNotNull(typeB);
+		assertTrue(typeB.getEStructuralFeatures().isEmpty());
+		
+		EClass typeC = (EClass) ePackage.getEClassifier("TypeC");
+		assertNotNull(typeC);
+		assertNotNull(typeC.getEStructuralFeature("x"));
+		assertEquals(1, typeC.getEStructuralFeatures().size());
+		
+		EClass typeD = (EClass) ePackage.getEClassifier("TypeD");
+		assertNotNull(typeD);
+		assertNotNull(typeD.getEStructuralFeature("x"));
+		assertEquals(1, typeD.getEStructuralFeatures().size());
+	}
+	
+	public void testBug346685_b01() throws Exception {
+		String grammar = "grammar test with org.eclipse.xtext.common.Terminals" +
+				" generate test 'http://test'";
+		grammar += " Model: A ({D.a = current} b = B)? c=C? ;\n"; 
+		grammar += " A: {A} 'a';\n"; 
+		grammar += " B: {B} 'c';\n";
+		grammar += " C: {C} 'b';\n"; 
+		EPackage ePackage = getEPackageFromGrammar(grammar);
+		
+		assertEquals(5, ePackage.getEClassifiers().size());
+		
+		EClass typeModel = (EClass) ePackage.getEClassifier("Model");
+		assertNotNull(typeModel);
+		assertNotNull(typeModel.getEStructuralFeature("c"));
+		assertEquals(1, typeModel.getEStructuralFeatures().size());
+		
+		EClass typeA = (EClass) ePackage.getEClassifier("A");
+		assertNotNull(typeA);
+		assertTrue(typeA.getEStructuralFeatures().isEmpty());
+		assertEquals(1, typeA.getESuperTypes().size());
+		assertSame(typeModel, typeA.getESuperTypes().get(0));
+		
+		EClass typeB = (EClass) ePackage.getEClassifier("B");
+		assertNotNull(typeB);
+		assertTrue(typeB.getEStructuralFeatures().isEmpty());
+		
+		EClass typeC = (EClass) ePackage.getEClassifier("C");
+		assertNotNull(typeC);
+		assertTrue(typeC.getEStructuralFeatures().isEmpty());
+		
+		EClass typeD = (EClass) ePackage.getEClassifier("D");
+		assertNotNull(typeD);
+		assertNotNull(typeD.getEStructuralFeature("a"));
+		assertNotNull(typeD.getEStructuralFeature("b"));
+		assertEquals(2, typeD.getEStructuralFeatures().size());
+	}
+	
+	public void testBug346685_b02() throws Exception {
+		String grammar = "grammar test with org.eclipse.xtext.common.Terminals" +
+				" generate test 'http://test'";
+		grammar += " Model: A ({D.a = current} b = B) c=C? ;\n"; 
+		grammar += " A: {A} 'a';\n"; 
+		grammar += " B: {B} 'c';\n";
+		grammar += " C: {C} 'b';\n"; 
+		EPackage ePackage = getEPackageFromGrammar(grammar);
+		
+		assertEquals(5, ePackage.getEClassifiers().size());
+		
+		EClass typeModel = (EClass) ePackage.getEClassifier("Model");
+		assertNotNull(typeModel);
+		assertTrue(typeModel.getEStructuralFeatures().isEmpty());
+		
+		EClass typeA = (EClass) ePackage.getEClassifier("A");
+		assertNotNull(typeA);
+		assertTrue(typeA.getEStructuralFeatures().isEmpty());
+		assertEquals(1, typeA.getESuperTypes().size());
+		assertSame(typeModel, typeA.getESuperTypes().get(0));
+		
+		EClass typeB = (EClass) ePackage.getEClassifier("B");
+		assertNotNull(typeB);
+		assertTrue(typeB.getEStructuralFeatures().isEmpty());
+		
+		EClass typeC = (EClass) ePackage.getEClassifier("C");
+		assertNotNull(typeC);
+		assertTrue(typeC.getEStructuralFeatures().isEmpty());
+		
+		EClass typeD = (EClass) ePackage.getEClassifier("D");
+		assertNotNull(typeD);
+		assertNotNull(typeD.getEStructuralFeature("a"));
+		assertNotNull(typeD.getEStructuralFeature("b"));
+		assertNotNull(typeD.getEStructuralFeature("c"));
+		assertEquals(3, typeD.getEStructuralFeatures().size());
+	}
+	
+	public void testBug346685_b03() throws Exception {
+		String grammar = "grammar test with org.eclipse.xtext.common.Terminals" +
+				" generate test 'http://test'";
+		grammar += " Model: A? ({D.a = current} b = B)? c=C? ;\n"; 
+		grammar += " A: {A} 'a';\n"; 
+		grammar += " B: {B} 'c';\n";
+		grammar += " C: {C} 'b';\n"; 
+		EPackage ePackage = getEPackageFromGrammar(grammar);
+		
+		assertEquals(5, ePackage.getEClassifiers().size());
+		
+		EClass typeModel = (EClass) ePackage.getEClassifier("Model");
+		assertNotNull(typeModel);
+		assertNotNull(typeModel.getEStructuralFeature("c"));
+		assertEquals(1, typeModel.getEStructuralFeatures().size());
+		
+		EClass typeA = (EClass) ePackage.getEClassifier("A");
+		assertNotNull(typeA);
+		assertTrue(typeA.getEStructuralFeatures().isEmpty());
+		assertEquals(1, typeA.getESuperTypes().size());
+		assertSame(typeModel, typeA.getESuperTypes().get(0));
+		
+		EClass typeB = (EClass) ePackage.getEClassifier("B");
+		assertNotNull(typeB);
+		assertTrue(typeB.getEStructuralFeatures().isEmpty());
+		
+		EClass typeC = (EClass) ePackage.getEClassifier("C");
+		assertNotNull(typeC);
+		assertTrue(typeC.getEStructuralFeatures().isEmpty());
+		
+		EClass typeD = (EClass) ePackage.getEClassifier("D");
+		assertNotNull(typeD);
+		assertNotNull(typeD.getEStructuralFeature("a"));
+		assertNotNull(typeD.getEStructuralFeature("b"));
+		assertEquals(2, typeD.getEStructuralFeatures().size());
+	}
+	
+	public void testBug346685_b04() throws Exception {
+		String grammar = "grammar test with org.eclipse.xtext.common.Terminals" +
+				" generate test 'http://test'";
+		grammar += " Model: A? ({D.a = current} b = B) c=C? ;\n"; 
+		grammar += " A: {A} 'a';\n"; 
+		grammar += " B: {B} 'c';\n";
+		grammar += " C: {C} 'b';\n"; 
+		EPackage ePackage = getEPackageFromGrammar(grammar);
+		
+		assertEquals(5, ePackage.getEClassifiers().size());
+		
+		EClass typeModel = (EClass) ePackage.getEClassifier("Model");
+		assertNotNull(typeModel);
+		assertTrue(typeModel.getEStructuralFeatures().isEmpty());
+		
+		EClass typeA = (EClass) ePackage.getEClassifier("A");
+		assertNotNull(typeA);
+		assertTrue(typeA.getEStructuralFeatures().isEmpty());
+		assertEquals(1, typeA.getESuperTypes().size());
+		assertSame(typeModel, typeA.getESuperTypes().get(0));
+		
+		EClass typeB = (EClass) ePackage.getEClassifier("B");
+		assertNotNull(typeB);
+		assertTrue(typeB.getEStructuralFeatures().isEmpty());
+		
+		EClass typeC = (EClass) ePackage.getEClassifier("C");
+		assertNotNull(typeC);
+		assertTrue(typeC.getEStructuralFeatures().isEmpty());
+		
+		EClass typeD = (EClass) ePackage.getEClassifier("D");
+		assertNotNull(typeD);
+		assertNotNull(typeD.getEStructuralFeature("a"));
+		assertNotNull(typeD.getEStructuralFeature("b"));
+		assertNotNull(typeD.getEStructuralFeature("c"));
+		assertEquals(3, typeD.getEStructuralFeatures().size());
+	}
+	
+	public void testEcoreReference_01() throws Exception {
+		XtextResourceSet resourceSet = new XtextResourceSet();
+		resourceSet.setClasspathURIContext(getClass());
+		assertFalse(resourceSet.getResource(URI.createURI("platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore"), true).getContents().isEmpty());
+		assertFalse(resourceSet.getResource(URI.createURI("platform:/plugin/org.eclipse.xtext.tests/src/org/eclipse/xtext/metamodelreferencing/tests/EcorePerNsURI.ecore"), true).getContents().isEmpty());
+		assertFalse(resourceSet.getResource(URI.createURI("platform:/plugin/org.eclipse.xtext.tests/src/org/eclipse/xtext/metamodelreferencing/tests/EcorePerPlatformResource.ecore"), true).getContents().isEmpty());
+		assertFalse(resourceSet.getResource(URI.createURI("platform:/plugin/org.eclipse.xtext.tests/src/org/eclipse/xtext/metamodelreferencing/tests/EcorePerPlatformPlugin.ecore"), true).getContents().isEmpty());
+		XtextResource resource = (XtextResource) resourceSet.getResource(URI.createURI("classpath:/org/eclipse/xtext/metamodelreferencing/tests/EcoreReferenceTestLanguage.xtext"), true);
+		assertTrue(Joiner.on("\n").join(resource.getErrors()), resource.getErrors().isEmpty());
 	}
 }

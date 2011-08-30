@@ -53,20 +53,40 @@ public class JvmFeatureScope extends SimpleScope {
 		return super.toString();
 	}
 	
+	
+	@Override
+	protected boolean isShadowed(IEObjectDescription fromParent) {
+		final Iterable<IEObjectDescription> localElements = getLocalElementsByName(fromParent.getName());
+		return isShadowedBy(fromParent, localElements);
+	}
+
 	/*
 	 * Specialized to interpret the shadowing key of sugared assignments to make sure
 	 * that fields with the very same name shadow properties, e.g. field prop1 has to
-	 * shadow all overloaded versions of setProp1(type).
+	 * shadow all overloaded versions of setProp1(type). Furthermore we want to allow
+	 * overwriting the concrete algorithm without the need to fetch the localElements twice.
 	 */
-	@Override
-	protected boolean isShadowed(IEObjectDescription fromParent) {
-		boolean result = super.isShadowed(fromParent);
+	/**
+	 * @see JvmFeatureScope#isShadowed(IEObjectDescription)
+	 */
+	protected boolean isShadowedBy(IEObjectDescription fromParent, final Iterable<IEObjectDescription> localElements) {
+		boolean result = false;
+		String parentKey = getShadowingKey(fromParent);
+		for(IEObjectDescription local: localElements) {
+			String localKey = getShadowingKey(local);
+			if (parentKey.equals(localKey))
+				return true;
+		}
 		if (result == false) {
 			String parentShadowingKey = getShadowingKey(fromParent);
 			int assignmentIndicator = parentShadowingKey.indexOf("=(");
 			if (assignmentIndicator >= 0) { // sugared assignment
 				String shortShadowingKey = parentShadowingKey.substring(0, assignmentIndicator);
-				result = shadowingIndex.contains(shortShadowingKey);
+				for(IEObjectDescription local: localElements) {
+					String localKey = getShadowingKey(local);
+					if (shortShadowingKey.equals(localKey))
+						return true;
+				}
 			}
 		}
 		return result;

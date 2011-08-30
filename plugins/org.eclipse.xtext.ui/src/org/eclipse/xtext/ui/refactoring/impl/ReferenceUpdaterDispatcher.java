@@ -56,11 +56,18 @@ public class ReferenceUpdaterDispatcher {
 				.getReferenceUpdater2ReferenceDescriptions();
 		SubMonitor updaterProgress = progress.newChild(98).setWorkRemaining(updater2descriptions.keySet().size());
 		for (IReferenceUpdater referenceUpdater : updater2descriptions.keySet()) {
-			if (updaterProgress.isCanceled())
-				return;
-			referenceUpdater.createReferenceUpdates(elementRenameArguments, updater2descriptions.get(referenceUpdater),
-					updateAcceptor, updaterProgress.newChild(1));
+			createReferenceUpdates(referenceUpdater, elementRenameArguments,
+					updater2descriptions.get(referenceUpdater), updateAcceptor, updaterProgress);
 		}
+	}
+
+	protected void createReferenceUpdates(IReferenceUpdater referenceUpdater,
+			ElementRenameArguments elementRenameArguments, Iterable<IReferenceDescription> referenceDescriptions,
+			IRefactoringUpdateAcceptor updateAcceptor, SubMonitor updaterProgress) {
+		if (updaterProgress.isCanceled())
+			return;
+		referenceUpdater.createReferenceUpdates(elementRenameArguments, referenceDescriptions, updateAcceptor,
+				updaterProgress.newChild(1));
 	}
 
 	protected ReferenceDescriptionAcceptor createFindReferenceAcceptor(IRefactoringUpdateAcceptor updateAcceptor) {
@@ -92,7 +99,7 @@ public class ReferenceUpdaterDispatcher {
 			URI sourceResourceURI = referenceDescription.getSourceEObjectUri().trimFragment();
 			IReferenceUpdater referenceUpdater = getReferenceUpdater(sourceResourceURI);
 			if (referenceUpdater == null)
-				status.addError("Cannot find a reference updater for " + notNull(sourceResourceURI)
+				status.addWarning("Cannot find a reference updater for " + notNull(sourceResourceURI)
 						+ " which contains references to renamed elements");
 			else
 				updater2refs.put(referenceUpdater, referenceDescription);
@@ -103,7 +110,7 @@ public class ReferenceUpdaterDispatcher {
 					.getResourceServiceProvider(sourceResourceURI);
 			IReferenceUpdater referenceUpdater = provider2updater.get(resourceServiceProvider);
 			if (referenceUpdater == null) {
-				referenceUpdater = resourceServiceProvider.get(IReferenceUpdater.class);
+				referenceUpdater = resourceServiceProvider.get(OptionalReferenceUpdaterProxy.class).get();
 				if (referenceUpdater != null)
 					provider2updater.put(resourceServiceProvider, referenceUpdater);
 			}
@@ -112,6 +119,15 @@ public class ReferenceUpdaterDispatcher {
 
 		public Multimap<IReferenceUpdater, IReferenceDescription> getReferenceUpdater2ReferenceDescriptions() {
 			return updater2refs;
+		}
+	}
+	
+	protected static class OptionalReferenceUpdaterProxy {
+		@Inject(optional=true)
+		private IReferenceUpdater referenceUpdater;
+		
+		public IReferenceUpdater get() {
+			return referenceUpdater;
 		}
 	}
 }

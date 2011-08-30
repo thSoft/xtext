@@ -54,6 +54,14 @@ public class Xtend2HighlightingCalculatorTest extends AbstractXtend2UITestCase i
 		expectedRegions = newHashMap();
 	}
 	
+	@Override
+	protected void tearDown() throws Exception {
+		expectedRegions = null;
+		testHelper = null;
+		calculator = null;
+		super.tearDown();
+	}
+	
 	protected String getPrefix() {
 		return "class Foo { def foo() ";
 	}
@@ -109,6 +117,27 @@ public class Xtend2HighlightingCalculatorTest extends AbstractXtend2UITestCase i
 		highlight(
 				"'''  \n" +
 				" foobar \n" +
+				"'''");
+	}
+	
+	public void testLiteralsWithComments() {
+		expect(0, 3);
+		expect(3, 2);
+		expect(6, 2);
+		expect(18, 1, HighlightingConfiguration.TEMPLATE_LINE_BREAK);
+		expect(19, 1);
+		expect(37, 1);
+		expect(50, 1, HighlightingConfiguration.TEMPLATE_LINE_BREAK);
+		expect(51, 2);
+		expect(86, 1, HighlightingConfiguration.TEMPLATE_LINE_BREAK);
+		expect(87, 3);
+		highlight(
+				"'''  \n" +
+				"  first line\n" +
+				" « /* comment */ » second line \n" +
+				"  third«\n" +
+				"   /* comment */ \n" +
+				" » line \n" +
 				"'''");
 	}
 	
@@ -186,7 +215,7 @@ public class Xtend2HighlightingCalculatorTest extends AbstractXtend2UITestCase i
 		assertEquals(1, id.length);
 		assertFalse(region.toString(), expectedRegions.isEmpty());
 		String expectedID = expectedRegions.remove(region);
-		assertNotNull("expected: " + expectedRegions.toString() + " but was: " + region, expectedID);
+		assertNotNull("expected: " + expectedRegions.toString() + " but was: " + region + " (" + id[0] + ")", expectedID);
 		assertEquals(expectedID, id[0]);
 	}
 	

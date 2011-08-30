@@ -49,7 +49,12 @@ public class AbstractEObjectAtOffsetTestLanguageSemanticSequencer extends Abstra
 	public void createSequence(EObject context, EObject semanticObject) {
 		if(semanticObject.eClass().getEPackage() == EObjectAtOffsetTestLanguagePackage.eINSTANCE) switch(semanticObject.eClass().getClassifierID()) {
 			case EObjectAtOffsetTestLanguagePackage.BAR:
-				if(context == grammarAccess.getBarRule()) {
+				if(context == grammarAccess.getAbstractBarAccess().getFooBarBarAction_3_0() ||
+				   context == grammarAccess.getBarRule()) {
+					sequence_Bar(context, (Bar) semanticObject); 
+					return; 
+				}
+				else if(context == grammarAccess.getAbstractBarRule()) {
 					sequence_Bar(context, (Bar) semanticObject); 
 					return; 
 				}
@@ -78,7 +83,7 @@ public class AbstractEObjectAtOffsetTestLanguageSemanticSequencer extends Abstra
 	
 	/**
 	 * Constraint:
-	 *     (bar=AbstractBar_FooBar_3_0 foo+=[Foo|ID] foo+=[Foo|ID]?)
+	 *     (bar=AbstractBar_FooBar_3_0 foo+=[Foo|QualifiedNameWithOtherDelim] foo+=[Foo|QualifiedNameWithOtherDelim]?)
 	 *
 	 * Features:
 	 *    foo[1, 2]
@@ -91,7 +96,7 @@ public class AbstractEObjectAtOffsetTestLanguageSemanticSequencer extends Abstra
 	
 	/**
 	 * Constraint:
-	 *     (name=ID foo+=[Foo|ID] foo+=[Foo|ID]*)
+	 *     (name=ID foo+=[Foo|QualifiedNameWithOtherDelim] foo+=[Foo|QualifiedNameWithOtherDelim]* foo+=[Foo|QualifiedNameWithOtherDelim]?)
 	 *
 	 * Features:
 	 *    foo[1, *]
@@ -104,7 +109,7 @@ public class AbstractEObjectAtOffsetTestLanguageSemanticSequencer extends Abstra
 	
 	/**
 	 * Constraint:
-	 *     name=ID
+	 *     name=QualifiedNameWithOtherDelim
 	 *
 	 * Features:
 	 *    name[1, 1]
@@ -116,7 +121,7 @@ public class AbstractEObjectAtOffsetTestLanguageSemanticSequencer extends Abstra
 		}
 		INodesForEObjectProvider nodes = createNodeProvider(semanticObject);
 		SequenceFeeder feeder = createSequencerFeeder(semanticObject, nodes);
-		feeder.accept(grammarAccess.getFooAccess().getNameIDTerminalRuleCall_1_0(), semanticObject.getName());
+		feeder.accept(grammarAccess.getFooAccess().getNameQualifiedNameWithOtherDelimParserRuleCall_1_0(), semanticObject.getName());
 		feeder.finish();
 	}
 	

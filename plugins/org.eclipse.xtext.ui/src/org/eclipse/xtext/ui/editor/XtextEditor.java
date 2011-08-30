@@ -92,6 +92,7 @@ import org.eclipse.xtext.ui.editor.model.TerminalsTokenTypeToPartitionMapper;
 import org.eclipse.xtext.ui.editor.model.XtextDocumentProvider;
 import org.eclipse.xtext.ui.editor.model.XtextDocumentUtil;
 import org.eclipse.xtext.ui.editor.preferences.IPreferenceStoreAccess;
+import org.eclipse.xtext.ui.editor.selection.SelectionHistory;
 import org.eclipse.xtext.ui.editor.syntaxcoloring.IHighlightingHelper;
 import org.eclipse.xtext.ui.editor.syntaxcoloring.TextAttributeProvider;
 import org.eclipse.xtext.ui.editor.toggleComments.ToggleSLCommentAction;
@@ -149,6 +150,8 @@ public class XtextEditor extends TextEditor {
 	private TextAttributeProvider textAttributeProvider;
 
 	private ISelectionChangedListener selectionChangedListener;
+
+	private SelectionHistory selectionHistory;
 	
 	private IPropertyListener dirtyListener = new IPropertyListener() {
 		public void propertyChanged(Object source, int propId) {
@@ -260,10 +263,20 @@ public class XtextEditor extends TextEditor {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public Object getAdapter(Class adapter) {
+		if (SelectionHistory.class.isAssignableFrom(adapter)) {
+			return getSelectionHistory();
+		}
 		if (IContentOutlinePage.class.isAssignableFrom(adapter)) {
 			return getContentOutlinePage();
 		}
 		return super.getAdapter(adapter);
+	}
+
+	private SelectionHistory getSelectionHistory() {
+		if (selectionHistory == null) {
+			selectionHistory = new SelectionHistory(this);
+		}
+		return selectionHistory;
 	}
 
 	private IContentOutlinePage getContentOutlinePage() {
@@ -303,6 +316,9 @@ public class XtextEditor extends TextEditor {
 
 	@Inject
 	private IActionContributor.CompositeImpl actioncontributor;
+	
+	@Inject
+	private ToggleSLCommentAction.Factory toggleSLCommentActionFactory;
 
 	@Override
 	protected void createActions() {
@@ -316,7 +332,7 @@ public class XtextEditor extends TextEditor {
 			markAsSelectionDependentAction("Format", true); //$NON-NLS-1$
 		}
 
-		ToggleSLCommentAction action = new ToggleSLCommentAction(XtextUIMessages.getResourceBundle(),
+		ToggleSLCommentAction action = toggleSLCommentActionFactory.create(XtextUIMessages.getResourceBundle(),
 				"ToggleComment.", this); //$NON-NLS-1$
 		action.setActionDefinitionId(Activator.PLUGIN_ID + ".ToggleCommentAction");
 		setAction("ToggleComment", action); //$NON-NLS-1$
@@ -376,12 +392,10 @@ public class XtextEditor extends TextEditor {
 
 	/**
 	 * @return true if content assist is available
-	 * 
 	 */
 	public boolean isContentAssistAvailable() {
 		boolean result = getSourceViewer().getTextOperationTarget().canDoOperation(ISourceViewer.CONTENTASSIST_PROPOSALS);
 		return result;
-//		return getSourceViewerConfiguration().getContentAssistant(getSourceViewer()) != null;
 	}
 
 	@Override
@@ -474,6 +488,10 @@ public class XtextEditor extends TextEditor {
 		}
 		if (outlinePage != null) {
 			outlinePage = null;
+		}
+		if (selectionHistory != null) {
+			selectionHistory.dispose();
+			selectionHistory = null;
 		}
 		uninstallFoldingSupport();
 		uninstallHighlightingHelper();

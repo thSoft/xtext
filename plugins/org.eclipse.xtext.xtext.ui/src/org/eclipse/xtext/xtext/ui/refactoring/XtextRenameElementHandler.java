@@ -19,7 +19,7 @@ import org.eclipse.xtext.resource.IEObjectDescription;
 import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.ui.editor.XtextEditor;
 import org.eclipse.xtext.ui.refactoring.ui.IRenameElementContext;
-import org.eclipse.xtext.ui.refactoring.ui.RenameElementHandler;
+import org.eclipse.xtext.ui.refactoring.ui.DefaultRenameElementHandler;
 
 import com.google.inject.Inject;
 
@@ -27,13 +27,13 @@ import com.google.inject.Inject;
  * @author Jan Koehnlein - Initial contribution and API
  */
 @SuppressWarnings("restriction")
-public class XtextRenameElementHandler extends RenameElementHandler {
+public class XtextRenameElementHandler extends DefaultRenameElementHandler {
 	
 	@Inject
 	private RuleOverrideUtil ruleOverrideUtil;
 	
 	@Override
-	protected IRenameElementContext createRenameElementContext(EObject targetElement, XtextEditor editor,
+	public IRenameElementContext createRenameElementContext(EObject targetElement, XtextEditor editor,
 			ITextSelection selection, XtextResource resource) {
 		if(targetElement instanceof AbstractRule) {
 			AbstractRule targetRule = (AbstractRule) targetElement;

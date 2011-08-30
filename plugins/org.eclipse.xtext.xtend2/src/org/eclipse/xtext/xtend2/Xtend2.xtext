@@ -29,7 +29,8 @@ QualifiedNameWithWildCard :
 Class returns XtendClass :
    annotations+=XAnnotation* 
    "class" name=ValidID ('<' typeParameters+=JvmTypeParameter (',' typeParameters+=JvmTypeParameter)* '>')?  
-   ("extends" extends=JvmTypeReference)? ('implements' implements+=JvmTypeReference (',' implements+=JvmTypeReference)*)?'{'
+   ("extends" extends=JvmParameterizedTypeReference)? 
+   ('implements' implements+=JvmParameterizedTypeReference (',' implements+=JvmParameterizedTypeReference)*)?'{'
 	   (members+=Member)*
    '}';
 
@@ -37,7 +38,9 @@ Member returns XtendMember:
 	{XtendMember} annotations+=XAnnotation* 
 	(
 		{XtendField.annotationInfo = current}	
-		(extension?='extension')? type=JvmTypeReference name=ValidID
+		( extension?='extension' type=JvmTypeReference name=ValidID?
+		| type=JvmTypeReference name=ValidID
+		)
 		
 	|	{XtendFunction.annotationInfo = current}
 		('def' | override?='override') (dispatch?='dispatch'?) ('<' typeParameters+=JvmTypeParameter (',' typeParameters+=JvmTypeParameter)* '>')?
@@ -52,7 +55,6 @@ CreateExtensionInfo:
 ValidID:
 	ID | 'create'
 ;
-
 
 Parameter returns XtendParameter:
 	annotations+=XAnnotation* 
@@ -69,8 +71,8 @@ SimpleStringLiteral returns xbase::XExpression:
 RichString returns xbase::XExpression:
 	{RichString} ( 
 	  expressions+=RichStringLiteral |
-	  expressions+=RichStringLiteralStart expressions+=RichStringPart 
-	  	(expressions+=RichStringLiteralInbetween expressions+=RichStringPart)* 
+	  expressions+=RichStringLiteralStart expressions+=RichStringPart? 
+	  	(expressions+=RichStringLiteralInbetween expressions+=RichStringPart?)* 
 	  expressions+=RichStringLiteralEnd
 	)
 ;
@@ -84,22 +86,19 @@ RichStringLiteralStart returns xbase::XExpression :
 ; 
 
 RichStringLiteralInbetween returns xbase::XExpression :
-	{RichStringLiteral} value=RICH_TEXT_INBETWEEN
+	{RichStringLiteral} 
+	( value=RICH_TEXT_INBETWEEN | value=COMMENT_RICH_TEXT_INBETWEEN )
 ; 
 
 RichStringLiteralEnd returns xbase::XExpression :
-	{RichStringLiteral} value=RICH_TEXT_END
+	{RichStringLiteral} 
+	( value=RICH_TEXT_END | value=COMMENT_RICH_TEXT_END )
 ; 
 
 InternalRichString returns xbase::XExpression:
 	{RichString} (
-		expressions+=InternalRichStringLiteral |
-		expressions+=RichStringLiteralInbetween (expressions+=RichStringPart expressions+=RichStringLiteralInbetween)+
+		expressions+=RichStringLiteralInbetween (expressions+=RichStringPart? expressions+=RichStringLiteralInbetween)*
 	)
-;
-
-InternalRichStringLiteral returns xbase::XExpression :
-	{RichStringLiteral} value=RICH_TEXT_INBETWEEN
 ;
 
 RichStringPart returns xbase::XExpression:
@@ -135,7 +134,9 @@ RichStringElseIf returns RichStringElseIf:
 terminal RICH_TEXT : "'''" IN_RICH_STRING* ("'''"| ("'" "'"?)? EOF);
 terminal RICH_TEXT_START : "'''" IN_RICH_STRING* ("'" "'"?)? 'л';
 terminal RICH_TEXT_END : '╗' IN_RICH_STRING* ("'''"| ("'" "'"?)? EOF) ;
-terminal RICH_TEXT_INBETWEEN : '╗' IN_RICH_STRING* ("'" "'"?)? 'л'; 
+terminal RICH_TEXT_INBETWEEN : '╗' IN_RICH_STRING* ("'" "'"?)? 'л';
+terminal COMMENT_RICH_TEXT_INBETWEEN: "лл" !('\n'|'\r')* ('\r'? '\n' IN_RICH_STRING* ("'" "'"?)? 'л')?; 
+terminal COMMENT_RICH_TEXT_END: "лл" !('\n'|'\r')* (('\r'? '\n' IN_RICH_STRING* ("'''"| ("'" "'"?)? EOF)) | EOF); 
 
 terminal fragment IN_RICH_STRING : 
 	  "''" !('л'|"'") 

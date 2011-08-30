@@ -17,5 +17,14 @@
             class="org.eclipse.xtext.builder.builderState.BuilderStatePackage"
             genModel="model/BuilderState.genmodel"/>
    </extension>
+   <extension
+         id="derivedresource"
+         name="Derived Resource"
+         point="org.eclipse.core.resources.markers">
+      <super type="org.eclipse.core.resources.marker"/>
+      <persistent value="true"/> 
+      <attribute name="source"/>
+      <attribute name="generator"/>
+   </extension>
    
 </plugin>

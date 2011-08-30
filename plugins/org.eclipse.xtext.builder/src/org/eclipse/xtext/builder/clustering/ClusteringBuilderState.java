@@ -27,6 +27,7 @@ import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.builder.builderState.AbstractBuilderState;
 import org.eclipse.xtext.builder.builderState.BuilderStateUtil;
 import org.eclipse.xtext.builder.builderState.ResourceDescriptionsData;
+import org.eclipse.xtext.builder.builderState.impl.ResourceDescriptionImpl;
 import org.eclipse.xtext.builder.impl.BuildData;
 import org.eclipse.xtext.resource.IResourceDescription;
 import org.eclipse.xtext.resource.IResourceDescription.Delta;
@@ -38,23 +39,23 @@ import org.eclipse.xtext.util.CancelIndicator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import com.google.inject.name.Named;
 
 /**
  * @author Sebastian Zarnekow - Initial contribution and API
- * @authot Thomas Wolf <thomas.wolf@paranor.ch> - Refactored the build phases and documentation
+ * @author Thomas Wolf <thomas.wolf@paranor.ch> - Refactored the build phases and documentation
  */
 public class ClusteringBuilderState extends AbstractBuilderState {
 
 	/** Class-wide logger. */
     private static final Logger LOGGER = Logger.getLogger(ClusteringBuilderState.class);
     
-	@Inject
+    private static final int CLUSTER_SIZE = 20;
+
+    @Inject
 	private IResourceServiceProvider.Registry managerRegistry;
 
-	@Inject(optional = true)
-	@Named("org.eclipse.xtext.builder.clustering.ClusteringBuilderState.clusterSize")
-	private int clusterSize = 20;
+	@Inject
+	private IResourceClusteringPolicy clusteringPolicy;
 
 	/**
      * Actually do the build.
@@ -144,15 +145,18 @@ public class ClusteringBuilderState extends AbstractBuilderState {
             subProgress.setWorkRemaining(queue.size() + 2);
             // TODO: How to properly do progress indication with an unknown amount of work? Somehow, the progress bar doesn't
             // advance anymore after this...
-            final List<Delta> newDeltas = new ArrayList<Delta>(clusterSize);
-            final List<Delta> changedDeltas = new ArrayList<Delta>(clusterSize);
-            while (!queue.isEmpty() && newDeltas.size() < clusterSize) {
-                final URI changedURI = queue.poll();
+            final List<Delta> newDeltas = new ArrayList<Delta>(CLUSTER_SIZE);
+            final List<Delta> changedDeltas = new ArrayList<Delta>(CLUSTER_SIZE);
+            while (!queue.isEmpty()) {
                 if (subProgress.isCanceled()) {
                     throw new OperationCanceledException();
                 }
+                final URI changedURI = queue.poll();
+                if (!clusteringPolicy.continueProcessing(resourceSet, changedURI, newDeltas.size())) {
+                	break;
+                }
                 if (!toBeDeleted.contains(changedURI)) {
-	                subProgress.subTask("Updating resource description " + index + " of " + (index + queue.size()));
+	                subProgress.subTask("Updating resource description for " + changedURI.lastSegment() + " (" + index + " of " + (index + queue.size()) + ")");
 	                // Load the resource and create a new resource description
 	                Resource resource = null;
 	                Delta newDelta = null;
@@ -168,15 +172,15 @@ public class ClusteringBuilderState extends AbstractBuilderState {
 	                                    this.getResourceDescription(changedURI), copiedDescription);
 	                    }
 	                } catch (final WrappedException ex) {
-	                    if (resourceSet.getURIConverter().exists(changedURI, Collections.emptyMap())) {
-	                        LOGGER.error("Error loading resource from: " + changedURI.toString(), ex); //$NON-NLS-1$
-	                    }
+	                    LOGGER.error("Error loading resource from: " + changedURI.toString(), ex); //$NON-NLS-1$
 	                    if (resource != null) {
 	                        resourceSet.getResources().remove(resource);
 	                    }
 	                    final IResourceDescription oldDescription = this.getResourceDescription(changedURI);
-	                    if (oldDescription != null) {
-	                        newDelta = new DefaultResourceDescriptionDelta(oldDescription, null);
+	                    final IResourceDescription newDesc = newState.getResourceDescription(changedURI);
+	                    ResourceDescriptionImpl indexReadyDescription = newDesc != null ? BuilderStateUtil.create(newDesc) : null;
+	                    if ((oldDescription != null || indexReadyDescription != null) && oldDescription != indexReadyDescription) {
+							newDelta = new DefaultResourceDescriptionDelta(oldDescription, indexReadyDescription);
 	                    }
 	                }
 	                if (newDelta != null) {
@@ -195,7 +199,8 @@ public class ClusteringBuilderState extends AbstractBuilderState {
             updateMarkers(resourceSet, ImmutableList.<Delta>copyOf(newDeltas), subProgress.newChild(1));
             allDeltas.addAll(newDeltas);
             // Release memory
-            resourceSet.getResources().clear();
+            if (!queue.isEmpty())
+				clearResourceSet(resourceSet);
         }
         return allDeltas;
     }
@@ -229,7 +234,7 @@ public class ClusteringBuilderState extends AbstractBuilderState {
             if (subMonitor.isCanceled()) {
                 throw new OperationCanceledException();
             }
-            subMonitor.subTask("Writing new resource description " + index + " of " + n); // TODO: NLS
+            subMonitor.subTask("Writing new resource description for " + uri.lastSegment() + " (" + index + " of " + n + ")"); // TODO: NLS
             Resource resource = null;
             try {
                 resource = resourceSet.getResource(uri, true);
@@ -262,12 +267,26 @@ public class ClusteringBuilderState extends AbstractBuilderState {
 
             subMonitor.worked(1);
             index++;
-            if (index % clusterSize == 0) {
+            if (index % CLUSTER_SIZE == 0) {
                 resourceSet.getResources().clear();
             }
         }
-        resourceSet.getResources().clear(); // Empty the resource set so that the next phase starts afresh.
+        clearResourceSet(resourceSet);
     }
+
+    /**
+     * Clears the content of the resource set without sending notifications.
+     * This avoids unnecessary, explicit unloads.
+     */
+	protected void clearResourceSet(ResourceSet resourceSet) {
+		boolean wasDeliver = resourceSet.eDeliver();
+		try {
+			resourceSet.eSetDeliver(false);
+			resourceSet.getResources().clear();
+		} finally {
+			resourceSet.eSetDeliver(wasDeliver);
+		}
+	}
 
     /**
      * Put all resources that depend on some changes onto the queue of resources to be processed. 

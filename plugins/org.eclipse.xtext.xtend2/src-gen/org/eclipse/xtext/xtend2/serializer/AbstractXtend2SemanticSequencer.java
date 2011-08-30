@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.common.types.JvmFormalParameter;
+import org.eclipse.xtext.common.types.JvmGenericArrayTypeReference;
 import org.eclipse.xtext.common.types.JvmLowerBound;
 import org.eclipse.xtext.common.types.JvmParameterizedTypeReference;
 import org.eclipse.xtext.common.types.JvmTypeParameter;
@@ -111,6 +112,14 @@ public class AbstractXtend2SemanticSequencer extends AbstractSemanticSequencer {
 					return; 
 				}
 				else break;
+			case TypesPackage.JVM_GENERIC_ARRAY_TYPE_REFERENCE:
+				if(context == grammarAccess.getJvmArgumentTypeReferenceRule() ||
+				   context == grammarAccess.getJvmTypeReferenceRule() ||
+				   context == grammarAccess.getJvmTypeReferenceAccess().getJvmGenericArrayTypeReferenceComponentTypeAction_0_1_0()) {
+					sequence_JvmTypeReference(context, (JvmGenericArrayTypeReference) semanticObject); 
+					return; 
+				}
+				else break;
 			case TypesPackage.JVM_LOWER_BOUND:
 				if(context == grammarAccess.getJvmLowerBoundRule()) {
 					sequence_JvmLowerBound(context, (JvmLowerBound) semanticObject); 
@@ -120,7 +129,8 @@ public class AbstractXtend2SemanticSequencer extends AbstractSemanticSequencer {
 			case TypesPackage.JVM_PARAMETERIZED_TYPE_REFERENCE:
 				if(context == grammarAccess.getJvmArgumentTypeReferenceRule() ||
 				   context == grammarAccess.getJvmParameterizedTypeReferenceRule() ||
-				   context == grammarAccess.getJvmTypeReferenceRule()) {
+				   context == grammarAccess.getJvmTypeReferenceRule() ||
+				   context == grammarAccess.getJvmTypeReferenceAccess().getJvmGenericArrayTypeReferenceComponentTypeAction_0_1_0()) {
 					sequence_JvmParameterizedTypeReference(context, (JvmParameterizedTypeReference) semanticObject); 
 					return; 
 				}
@@ -1082,11 +1092,7 @@ public class AbstractXtend2SemanticSequencer extends AbstractSemanticSequencer {
 				}
 				else break;
 			case Xtend2Package.RICH_STRING_LITERAL:
-				if(context == grammarAccess.getInternalRichStringLiteralRule()) {
-					sequence_InternalRichStringLiteral(context, (RichStringLiteral) semanticObject); 
-					return; 
-				}
-				else if(context == grammarAccess.getRichStringLiteralEndRule()) {
+				if(context == grammarAccess.getRichStringLiteralEndRule()) {
 					sequence_RichStringLiteralEnd(context, (RichStringLiteral) semanticObject); 
 					return; 
 				}
@@ -1166,8 +1172,8 @@ public class AbstractXtend2SemanticSequencer extends AbstractSemanticSequencer {
 	 *         annotations+=XAnnotation* 
 	 *         name=ValidID 
 	 *         (typeParameters+=JvmTypeParameter typeParameters+=JvmTypeParameter*)? 
-	 *         extends=JvmTypeReference? 
-	 *         (implements+=JvmTypeReference implements+=JvmTypeReference*)? 
+	 *         extends=JvmParameterizedTypeReference? 
+	 *         (implements+=JvmParameterizedTypeReference implements+=JvmParameterizedTypeReference*)? 
 	 *         members+=Member*
 	 *     )
 	 *
@@ -1239,32 +1245,10 @@ public class AbstractXtend2SemanticSequencer extends AbstractSemanticSequencer {
 	
 	/**
 	 * Constraint:
-	 *     value=RICH_TEXT_INBETWEEN
+	 *     (expressions+=RichStringLiteralInbetween (expressions+=RichStringPart? expressions+=RichStringLiteralInbetween)*)
 	 *
 	 * Features:
-	 *    value[1, 1]
-	 */
-	protected void sequence_InternalRichStringLiteral(EObject context, RichStringLiteral semanticObject) {
-		if(errorAcceptor != null) {
-			if(transientValues.isValueTransient(semanticObject, XbasePackage.Literals.XSTRING_LITERAL__VALUE) == ValueTransient.YES)
-				errorAcceptor.accept(diagnosticProvider.createFeatureValueMissing(semanticObject, XbasePackage.Literals.XSTRING_LITERAL__VALUE));
-		}
-		INodesForEObjectProvider nodes = createNodeProvider(semanticObject);
-		SequenceFeeder feeder = createSequencerFeeder(semanticObject, nodes);
-		feeder.accept(grammarAccess.getInternalRichStringLiteralAccess().getValueRICH_TEXT_INBETWEENTerminalRuleCall_1_0(), semanticObject.getValue());
-		feeder.finish();
-	}
-	
-	
-	/**
-	 * Constraint:
-	 *     (
-	 *         expressions+=InternalRichStringLiteral | 
-	 *         (expressions+=RichStringLiteralInbetween (expressions+=RichStringPart expressions+=RichStringLiteralInbetween)+)
-	 *     )
-	 *
-	 * Features:
-	 *    expressions[0, *]
+	 *    expressions[1, *]
 	 */
 	protected void sequence_InternalRichString(EObject context, RichString semanticObject) {
 		genericSequencer.createSequence(context, semanticObject);
@@ -1324,6 +1308,18 @@ public class AbstractXtend2SemanticSequencer extends AbstractSemanticSequencer {
 	
 	/**
 	 * Constraint:
+	 *     componentType=JvmTypeReference_JvmGenericArrayTypeReference_0_1_0
+	 *
+	 * Features:
+	 *    componentType[1, 1]
+	 */
+	protected void sequence_JvmTypeReference(EObject context, JvmGenericArrayTypeReference semanticObject) {
+		superSequencer.createSequence(context, semanticObject);
+	}
+	
+	
+	/**
+	 * Constraint:
 	 *     typeReference=JvmTypeReference
 	 *
 	 * Features:
@@ -1360,28 +1356,18 @@ public class AbstractXtend2SemanticSequencer extends AbstractSemanticSequencer {
 	
 	/**
 	 * Constraint:
-	 *     (
-	 *         (
-	 *             (annotationInfo=Member_XtendField_2_0_0 extension?='extension'? type=JvmTypeReference) | 
-	 *             (annotationInfo=Member_XtendField_2_0_0 type=JvmTypeReference)
-	 *         ) 
-	 *         name=ValidID
-	 *     )
+	 *     (annotationInfo=Member_XtendField_2_0_0 ((extension?='extension' type=JvmTypeReference name=ValidID?) | (type=JvmTypeReference name=ValidID)))
 	 *
 	 * Features:
-	 *    annotationInfo[0, 2]
-	 *         MANDATORY_IF_SET type
-	 *         EXCLUDE_IF_SET type
-	 *    name[1, 1]
+	 *    annotationInfo[1, 1]
+	 *    name[0, 2]
 	 *    type[0, 2]
-	 *         EXCLUDE_IF_UNSET annotationInfo
-	 *         MANDATORY_IF_SET annotationInfo
-	 *         EXCLUDE_IF_SET annotationInfo
-	 *         EXCLUDE_IF_SET extension
 	 *    extension[0, 1]
-	 *         EXCLUDE_IF_UNSET annotationInfo
-	 *         EXCLUDE_IF_SET annotationInfo
+	 *         EXCLUDE_IF_UNSET type
+	 *         MANDATORY_IF_SET type
+	 *         MANDATORY_IF_SET name
 	 *         EXCLUDE_IF_SET type
+	 *         EXCLUDE_IF_SET name
 	 */
 	protected void sequence_Member(EObject context, XtendField semanticObject) {
 		genericSequencer.createSequence(context, semanticObject);
@@ -1508,39 +1494,25 @@ public class AbstractXtend2SemanticSequencer extends AbstractSemanticSequencer {
 	
 	/**
 	 * Constraint:
-	 *     value=RICH_TEXT_END
+	 *     (value=RICH_TEXT_END | value=COMMENT_RICH_TEXT_END)
 	 *
 	 * Features:
-	 *    value[1, 1]
+	 *    value[0, 2]
 	 */
 	protected void sequence_RichStringLiteralEnd(EObject context, RichStringLiteral semanticObject) {
-		if(errorAcceptor != null) {
-			if(transientValues.isValueTransient(semanticObject, XbasePackage.Literals.XSTRING_LITERAL__VALUE) == ValueTransient.YES)
-				errorAcceptor.accept(diagnosticProvider.createFeatureValueMissing(semanticObject, XbasePackage.Literals.XSTRING_LITERAL__VALUE));
-		}
-		INodesForEObjectProvider nodes = createNodeProvider(semanticObject);
-		SequenceFeeder feeder = createSequencerFeeder(semanticObject, nodes);
-		feeder.accept(grammarAccess.getRichStringLiteralEndAccess().getValueRICH_TEXT_ENDTerminalRuleCall_1_0(), semanticObject.getValue());
-		feeder.finish();
+		genericSequencer.createSequence(context, semanticObject);
 	}
 	
 	
 	/**
 	 * Constraint:
-	 *     value=RICH_TEXT_INBETWEEN
+	 *     (value=RICH_TEXT_INBETWEEN | value=COMMENT_RICH_TEXT_INBETWEEN)
 	 *
 	 * Features:
-	 *    value[1, 1]
+	 *    value[0, 2]
 	 */
 	protected void sequence_RichStringLiteralInbetween(EObject context, RichStringLiteral semanticObject) {
-		if(errorAcceptor != null) {
-			if(transientValues.isValueTransient(semanticObject, XbasePackage.Literals.XSTRING_LITERAL__VALUE) == ValueTransient.YES)
-				errorAcceptor.accept(diagnosticProvider.createFeatureValueMissing(semanticObject, XbasePackage.Literals.XSTRING_LITERAL__VALUE));
-		}
-		INodesForEObjectProvider nodes = createNodeProvider(semanticObject);
-		SequenceFeeder feeder = createSequencerFeeder(semanticObject, nodes);
-		feeder.accept(grammarAccess.getRichStringLiteralInbetweenAccess().getValueRICH_TEXT_INBETWEENTerminalRuleCall_1_0(), semanticObject.getValue());
-		feeder.finish();
+		genericSequencer.createSequence(context, semanticObject);
 	}
 	
 	
@@ -1599,8 +1571,8 @@ public class AbstractXtend2SemanticSequencer extends AbstractSemanticSequencer {
 	 *         expressions+=RichStringLiteral | 
 	 *         (
 	 *             expressions+=RichStringLiteralStart 
-	 *             expressions+=RichStringPart 
-	 *             (expressions+=RichStringLiteralInbetween expressions+=RichStringPart)* 
+	 *             expressions+=RichStringPart? 
+	 *             (expressions+=RichStringLiteralInbetween expressions+=RichStringPart?)* 
 	 *             expressions+=RichStringLiteralEnd
 	 *         )
 	 *     )

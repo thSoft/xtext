@@ -26,6 +26,7 @@ import org.eclipse.emf.ecore.util.InternalEList;
 import org.eclipse.xtext.common.types.JvmArrayType;
 import org.eclipse.xtext.common.types.JvmComponentType;
 import org.eclipse.xtext.common.types.JvmDeclaredType;
+import org.eclipse.xtext.common.types.JvmFeature;
 import org.eclipse.xtext.common.types.JvmField;
 import org.eclipse.xtext.common.types.JvmMember;
 import org.eclipse.xtext.common.types.JvmOperation;
@@ -199,10 +200,10 @@ public abstract class JvmDeclaredTypeImpl extends JvmMemberImplCustom implements
 			if (arrayType != oldArrayType)
 			{
 				InternalEObject newArrayType = (InternalEObject)arrayType;
-				NotificationChain msgs = oldArrayType.eInverseRemove(this, EOPPOSITE_FEATURE_BASE - TypesPackage.JVM_DECLARED_TYPE__ARRAY_TYPE, null, null);
+				NotificationChain msgs =  oldArrayType.eInverseRemove(this, TypesPackage.JVM_ARRAY_TYPE__COMPONENT_TYPE, JvmArrayType.class, null);
 				if (newArrayType.eInternalContainer() == null)
 				{
-					msgs = newArrayType.eInverseAdd(this, EOPPOSITE_FEATURE_BASE - TypesPackage.JVM_DECLARED_TYPE__ARRAY_TYPE, null, msgs);
+					msgs =  newArrayType.eInverseAdd(this, TypesPackage.JVM_ARRAY_TYPE__COMPONENT_TYPE, JvmArrayType.class, msgs);
 				}
 				if (msgs != null) msgs.dispatch();
 				if (eNotificationRequired())
@@ -250,9 +251,9 @@ public abstract class JvmDeclaredTypeImpl extends JvmMemberImplCustom implements
 		{
 			NotificationChain msgs = null;
 			if (arrayType != null)
-				msgs = ((InternalEObject)arrayType).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - TypesPackage.JVM_DECLARED_TYPE__ARRAY_TYPE, null, msgs);
+				msgs = ((InternalEObject)arrayType).eInverseRemove(this, TypesPackage.JVM_ARRAY_TYPE__COMPONENT_TYPE, JvmArrayType.class, msgs);
 			if (newArrayType != null)
-				msgs = ((InternalEObject)newArrayType).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - TypesPackage.JVM_DECLARED_TYPE__ARRAY_TYPE, null, msgs);
+				msgs = ((InternalEObject)newArrayType).eInverseAdd(this, TypesPackage.JVM_ARRAY_TYPE__COMPONENT_TYPE, JvmArrayType.class, msgs);
 			msgs = basicSetArrayType(newArrayType, msgs);
 			if (msgs != null) msgs.dispatch();
 		}
@@ -409,12 +410,40 @@ public abstract class JvmDeclaredTypeImpl extends JvmMemberImplCustom implements
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
+	public Iterable<JvmFeature> findAllFeaturesByName(String simpleName)
+	{
+		// TODO: implement this method
+		// Ensure that you remove @generated or mark it @generated NOT
+		throw new UnsupportedOperationException();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public Iterable<JvmFeature> getAllFeatures()
+	{
+		// TODO: implement this method
+		// Ensure that you remove @generated or mark it @generated NOT
+		throw new UnsupportedOperationException();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public NotificationChain eInverseAdd(InternalEObject otherEnd, int featureID, NotificationChain msgs)
 	{
 		switch (featureID)
 		{
+			case TypesPackage.JVM_DECLARED_TYPE__ARRAY_TYPE:
+				if (arrayType != null)
+					msgs = ((InternalEObject)arrayType).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - TypesPackage.JVM_DECLARED_TYPE__ARRAY_TYPE, null, msgs);
+				return basicSetArrayType((JvmArrayType)otherEnd, msgs);
 			case TypesPackage.JVM_DECLARED_TYPE__MEMBERS:
 				return ((InternalEList<InternalEObject>)(InternalEList<?>)getMembers()).basicAdd(otherEnd, msgs);
 		}

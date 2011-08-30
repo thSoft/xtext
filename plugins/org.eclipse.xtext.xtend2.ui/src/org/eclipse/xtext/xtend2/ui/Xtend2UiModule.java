@@ -6,7 +6,10 @@ package org.eclipse.xtext.xtend2.ui;
 import org.eclipse.jface.text.rules.ITokenScanner;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
+import org.eclipse.xtext.builder.EclipseResourceFileSystemAccess2;
+import org.eclipse.xtext.builder.JDTAwareEclipseResourceFileSystemAccess2;
 import org.eclipse.xtext.common.types.xtext.ui.ITypesProposalProvider;
+import org.eclipse.xtext.ui.editor.XtextSourceViewer;
 import org.eclipse.xtext.ui.editor.actions.IActionContributor;
 import org.eclipse.xtext.ui.editor.autoedit.AbstractEditStrategy;
 import org.eclipse.xtext.ui.editor.autoedit.AbstractEditStrategyProvider;
@@ -21,11 +24,15 @@ import org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage;
 import org.eclipse.xtext.ui.editor.syntaxcoloring.AbstractAntlrTokenToAttributeIdMapper;
 import org.eclipse.xtext.ui.editor.syntaxcoloring.IHighlightingConfiguration;
 import org.eclipse.xtext.ui.editor.syntaxcoloring.ISemanticHighlightingCalculator;
-import org.eclipse.xtext.ui.refactoring.ui.RenameElementHandler;
-import org.eclipse.xtext.xbase.ui.jvmmodel.refactoring.jdt.JDTRenamePartcipant;
+import org.eclipse.xtext.ui.editor.toggleComments.ISingleLineCommentHelper;
+import org.eclipse.xtext.ui.editor.toggleComments.ToggleSLCommentAction;
+import org.eclipse.xtext.ui.refactoring.ui.IRenameElementHandler;
 import org.eclipse.xtext.xtend2.ui.autoedit.AutoEditStrategyProvider;
 import org.eclipse.xtext.xtend2.ui.autoedit.TokenTypeToPartitionMapper;
 import org.eclipse.xtext.xtend2.ui.contentassist.ImportingTypesProposalProvider;
+import org.eclipse.xtext.xtend2.ui.editor.RichStringAwareSourceViewer;
+import org.eclipse.xtext.xtend2.ui.editor.RichStringAwareToggleCommentAction;
+import org.eclipse.xtext.xtend2.ui.editor.SingleLineCommentHelper;
 import org.eclipse.xtext.xtend2.ui.editor.Xtend2DoubleClickStrategyProvider;
 import org.eclipse.xtext.xtend2.ui.editor.Xtend2FoldingRegionProvider;
 import org.eclipse.xtext.xtend2.ui.highlighting.HighlightingConfiguration;
@@ -40,7 +47,6 @@ import org.eclipse.xtext.xtend2.ui.outline.Xtend2OutlinePage;
 import org.eclipse.xtext.xtend2.ui.preferences.Xtend2Preferences;
 import org.eclipse.xtext.xtend2.ui.preferences.Xtend2RootPreferencePage;
 import org.eclipse.xtext.xtend2.ui.refactoring.Xtend2RenameElementHandler;
-import org.eclipse.xtext.xtend2.ui.refactoring.Xtend2RenameParticipant;
 
 import com.google.inject.Binder;
 import com.google.inject.name.Names;
@@ -135,12 +141,24 @@ public class Xtend2UiModule extends org.eclipse.xtext.xtend2.ui.AbstractXtend2Ui
 	}
 
 	@Override
-	public Class<? extends RenameElementHandler> bindRenameElementHandler() {
+	public Class<? extends IRenameElementHandler> bindIRenameElementHandler() {
 		return Xtend2RenameElementHandler.class;
 	}
 	
-	public Class<? extends JDTRenamePartcipant> bindJDTRenamePartcipant() {
-		return Xtend2RenameParticipant.class;
+	public Class<? extends EclipseResourceFileSystemAccess2> bindEclipseResourceFileSystemAccess2() {
+		return JDTAwareEclipseResourceFileSystemAccess2.class;
 	}
 	
+	@Override
+	public Class<? extends ISingleLineCommentHelper> bindISingleLineCommentHelper() {
+		return SingleLineCommentHelper.class;
+	}
+	
+	public Class<? extends XtextSourceViewer.Factory> bindSourceViewerFactory() {
+		return RichStringAwareSourceViewer.Factory.class;
+	}
+	
+	public Class<? extends ToggleSLCommentAction.Factory> bindToggleCommentFactory() {
+		return RichStringAwareToggleCommentAction.Factory.class;
+	}
 }

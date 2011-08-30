@@ -10,6 +10,7 @@ package org.eclipse.xtext.common.types.util;
 import static com.google.common.collect.Lists.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -21,18 +22,19 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.common.types.JvmAnyTypeReference;
 import org.eclipse.xtext.common.types.JvmArrayType;
+import org.eclipse.xtext.common.types.JvmComponentType;
 import org.eclipse.xtext.common.types.JvmGenericArrayTypeReference;
 import org.eclipse.xtext.common.types.JvmGenericType;
 import org.eclipse.xtext.common.types.JvmMultiTypeReference;
 import org.eclipse.xtext.common.types.JvmParameterizedTypeReference;
 import org.eclipse.xtext.common.types.JvmType;
+import org.eclipse.xtext.common.types.JvmTypeConstraint;
 import org.eclipse.xtext.common.types.JvmTypeParameter;
 import org.eclipse.xtext.common.types.JvmTypeReference;
 import org.eclipse.xtext.common.types.JvmUpperBound;
 import org.eclipse.xtext.common.types.JvmWildcardTypeReference;
 import org.eclipse.xtext.common.types.TypesFactory;
 import org.eclipse.xtext.common.types.access.IJvmTypeProvider;
-import org.eclipse.xtext.common.types.access.TypeNotFoundException;
 import org.eclipse.xtext.common.types.access.impl.ClassURIHelper;
 
 import com.google.inject.Inject;
@@ -42,6 +44,7 @@ import com.google.inject.Inject;
  */
 public class TypeReferences {
 	
+	@SuppressWarnings("unused")
 	private final static Logger log = Logger.getLogger(TypeReferences.class);
 
 	@Inject
@@ -55,6 +58,46 @@ public class TypeReferences {
 	
 	@Inject
 	private SuperTypeCollector superTypeCollector;
+	
+	// TODO we need #getRawType(s) on the JvmTypeReference in order to deal with custom reference implementations
+	// e.g. JvmMultiTypeReference et al
+	public JvmType getRawType(JvmTypeReference reference) {
+		if (reference instanceof JvmParameterizedTypeReference) {
+			JvmType rawType = reference.getType();
+			if (rawType instanceof JvmTypeParameter) {
+				// TODO handle multiple upper bounds
+				// TODO use object if only lower bounds were present (robustness)
+				List<JvmTypeConstraint> constraints = ((JvmTypeParameter) rawType).getConstraints();
+				for (JvmTypeConstraint constraint : constraints) {
+					if (constraint instanceof JvmUpperBound) {
+						JvmTypeReference upperBound = constraint.getTypeReference();
+						return getRawType(upperBound);
+					}
+				}
+				// no upper bound found
+				return findDeclaredType(Object.class, rawType);
+			}
+			return rawType;
+		} else if (reference instanceof JvmGenericArrayTypeReference) {
+			JvmTypeReference componentTypeReference = ((JvmGenericArrayTypeReference) reference).getComponentType();
+			JvmType rawComponentType = getRawType(componentTypeReference);
+			if (rawComponentType instanceof JvmComponentType && !rawComponentType.eIsProxy())
+				return ((JvmComponentType) rawComponentType).getArrayType();
+			return null;
+		} else if (reference instanceof JvmWildcardTypeReference) {
+			List<JvmTypeConstraint> constraints = ((JvmWildcardTypeReference) reference).getConstraints();
+			// TODO handle multiple upper bounds
+			// TODO use object if only lower bounds were present (robustness)
+			for (JvmTypeConstraint constraint : constraints) {
+				if (constraint instanceof JvmUpperBound) {
+					JvmTypeReference upperBound = constraint.getTypeReference();
+					return getRawType(upperBound);
+				}
+			}
+			return null;
+		}
+		return null;
+	}
 	
 	public JvmAnyTypeReference createAnyTypeReference(EObject context) {
 		JvmAnyTypeReference result = factory.createJvmAnyTypeReference();
@@ -72,8 +115,9 @@ public class TypeReferences {
 	}
 	
 	public JvmParameterizedTypeReference createTypeRef(JvmType type, JvmTypeReference... typeArgs) {
-		List<JvmTypeReference> typeReferences = newArrayList();
-		if (typeArgs!=null) {
+		List<JvmTypeReference> typeReferences = Collections.emptyList();
+		if (typeArgs!=null && typeArgs.length > 0) {
+			typeReferences = newArrayListWithCapacity(typeArgs.length);
 			for (int i = 0; i < typeArgs.length; i++) {
 				JvmTypeReference jvmTypeReference = typeArgs[i];
 				typeReferences.add(EcoreUtil2.clone(jvmTypeReference));
@@ -86,8 +130,9 @@ public class TypeReferences {
 						+ " type arguments, but was " + typeReferences.size()
 						+ ". Either pass zero arguments (raw type) or the correct number.");
 			}
-			// Raw type -> create type refereces to type param
+			// Raw type -> create type references to type param
 			if (typeReferences.isEmpty() && !list.isEmpty()) {
+				typeReferences = newArrayListWithCapacity(list.size());
 				for (JvmTypeParameter typeParameter : list) {
 					typeReferences.add(createTypeRef(typeParameter));
 				}
@@ -159,9 +204,7 @@ public class TypeReferences {
 	
 	public JvmGenericArrayTypeReference createArrayType(JvmTypeReference componentType) {
 		JvmGenericArrayTypeReference result = factory.createJvmGenericArrayTypeReference();
-		JvmArrayType arrayType = factory.createJvmArrayType();
-		result.setType(arrayType);
-		arrayType.setComponentType(EcoreUtil2.cloneIfContained(componentType));
+		result.setComponentType(EcoreUtil2.cloneIfContained(componentType));
 		return result;
 	}
 	
@@ -171,18 +214,15 @@ public class TypeReferences {
 		if (context.eResource() == null)
 			throw new NullPointerException("context must be contained in a resource");
 		final ResourceSet resourceSet = context.eResource().getResourceSet();
-		if (resourceSet == null)
-			throw new NullPointerException("context must be contained in a resource set");
+		if (resourceSet == null) {
+			// may be null if the editor was closed too early
+			return null;
+		}
 		// make sure a type provider is configured in the resource set. 
 		typeProviderFactory.findOrCreateTypeProvider(resourceSet);
 		URI uri = toCommonTypesUri(clazz);
-		try {
-			JvmType declaredType = (JvmType) resourceSet.getEObject(uri, true);
-			return declaredType;
-		} catch (TypeNotFoundException e) {
-			log.error(e.getMessage(), e);
-			return null;
-		}
+		JvmType declaredType = (JvmType) resourceSet.getEObject(uri, true);
+		return declaredType;
 	}
 	
 	public JvmType findDeclaredType(String typeName, Notifier context) {
@@ -194,13 +234,7 @@ public class TypeReferences {
 //			throw new NullPointerException("context must be contained in a resource");
 		// make sure a type provider is configured in the resource set. 
 		IJvmTypeProvider typeProvider = typeProviderFactory.findOrCreateTypeProvider(resourceSet);
-		try {
-			JvmType result = typeProvider.findTypeByName(typeName);
-			return result;
-		} catch (TypeNotFoundException e) {
-			log.debug(e.getMessage(), e);
-			return null;
-		}
+		return typeProvider.findTypeByName(typeName);
 	}
 	
 	public boolean is(final JvmTypeReference reference, final Class<?> clazz) {
@@ -231,6 +265,6 @@ public class TypeReferences {
 	public boolean isArray(JvmTypeReference type) {
 		if (isNullOrProxy(type))
 			return false;
-		return type.getType() instanceof JvmArrayType;
+		return type instanceof JvmGenericArrayTypeReference || type.getType() instanceof JvmArrayType;
 	}
 }

@@ -18,6 +18,7 @@ import org.eclipse.emf.common.util.WrappedException;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.xtext.junit.util.ParseHelper;
 import org.eclipse.xtext.junit.validation.ValidationTestHelper;
+import org.eclipse.xtext.validation.Check;
 import org.eclipse.xtext.xbase.XbasePackage;
 import org.eclipse.xtext.xbase.compiler.OnTheFlyJavaCompiler.EclipseRuntimeDependentJavaCompiler;
 import org.eclipse.xtext.xbase.junit.evaluation.AbstractXbaseEvaluationTest;
@@ -59,6 +60,7 @@ public class CompilerTestHelper {
 		javaCompiler.addClassPathOfClass(EcorePackage.class);
 		javaCompiler.addClassPathOfClass(XbasePackage.class);
 		javaCompiler.addClassPathOfClass(Xtend2Package.class);
+		javaCompiler.addClassPathOfClass(Check.class);
 	}
 	
 	public void assertEvaluatesTo(Object object, String string) {
@@ -66,9 +68,9 @@ public class CompilerTestHelper {
 		try {
 			Object actual = apply(compile(string));
 			if (object instanceof String && actual instanceof String) {
-				Assert.assertEquals("Java code was " + compileToJavaCode, (String)object, (String)actual);	
+				Assert.assertEquals("String was:\n" + string + "\nJava code was " + compileToJavaCode, (String)object, (String)actual);	
 			} else {
-				Assert.assertEquals("Java code was " + compileToJavaCode, object, actual);
+				Assert.assertEquals("String was:\n" + string + "\nJava code was " + compileToJavaCode, object, actual);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

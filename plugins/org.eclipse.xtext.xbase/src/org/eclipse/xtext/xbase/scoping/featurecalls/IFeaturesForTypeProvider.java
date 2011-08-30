@@ -18,10 +18,18 @@ import com.google.inject.ImplementedBy;
 @ImplementedBy(DefaultFeaturesForTypeProvider.class)
 public interface IFeaturesForTypeProvider {
 	
-	/**
-	 * provides the features for a given type
-	 */
-	Iterable<? extends JvmFeature> getFeaturesForType(JvmTypeReference type);
-	
 	boolean isExtensionProvider();
+
+	// TODO use a specialized IJvmTypeHierarchy instance that allows to obtain more information
+	// e.g. constant time lookup of prepared synonym types
+	Iterable<JvmFeature> getFeaturesByName(
+			String name, 
+			JvmTypeReference declarator, 
+			Iterable<JvmTypeReference> hierarchy);
+
+	// TODO use a specialized IJvmTypeHierarchy instance that allows to obtain more information
+	// e.g. constant time lookup of prepared synonym types
+	Iterable<JvmFeature> getAllFeatures(
+			JvmTypeReference typeReference,
+			Iterable<JvmTypeReference> hierarchy);
 }
