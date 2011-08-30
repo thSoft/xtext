@@ -11,4 +11,5 @@
   <artifactId>org.eclipse.xtext.ui.shared</artifactId>
   
   <packaging>eclipse-plugin</packaging>
+  <version>2.0.1-SNAPSHOT</version>
 </project>
