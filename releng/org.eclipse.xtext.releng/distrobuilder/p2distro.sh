@@ -15,7 +15,7 @@ set -u #unseted variables assertion
 ECLIPSE_CODENAME=$1            #i.e. indigo
 
 # Constatnts
-DIR_TARGETPLATFORMS="$DIR_ROOT/$ECLIPSE_CODENAME/targetplatforms"		# platform depended eclipses where feature schould be installed
+DIR_TARGETPLATFORMS="$DIR_ROOT/$ECLIPSE_CODENAME/targetplatforms"		# platform depended eclipses where feature should be installed
 DIR_OUTPUT="$DIR_ROOT/$ECLIPSE_CODENAME/output"							# produced distros folder
 DIR_TMP="$DIR_ROOT/$ECLIPSE_CODENAME/tmp"								# temp folder
 DIR_REPOSITORIES="$DIR_ROOT/$ECLIPSE_CODENAME/repositories"			 	# local zipped repositories to be used
