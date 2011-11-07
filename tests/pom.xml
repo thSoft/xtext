@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.eclipse.xtext</groupId>
+		<version>2.1.0-SNAPSHOT</version>
+		<artifactId>org.eclipse.xtext.xtext-parent</artifactId>
+		<relativePath>../releng/org.eclipse.xtext.xtext-parent/pom.xml</relativePath>
+	</parent>
+	<groupId>org.eclipse.xtext.tests</groupId>
+	<artifactId>tests</artifactId>
+	<packaging>pom</packaging>
+	<properties>
+		<default.args>-Dfile.encoding=ISO-8859-1 -Xmx1g -XX:MaxPermSize=256m</default.args>
+	</properties>
+	<modules>
+		<module>org.eclipse.xtext.test.tests</module>
+		<module>org.eclipse.xtext.xbase.tests</module>
+		<module>org.eclipse.xtext.xbase.ui.tests</module>
+		<module>org.eclipse.xtext.tests</module>
+		<module>org.eclipse.xtext.junit4.tests</module>
+		<module>org.eclipse.xtext.ui.tests</module>
+		<module>org.eclipse.xtext.xtext.ui.tests</module>
+		<module>org.eclipse.xtext.xtend2.tests</module>
+		<module>org.eclipse.xtext.xtend2.ui.tests</module>
+		<module>org.eclipse.xtext.builder.tests</module>
+		<module>org.eclipse.xtext.common.types.tests</module>
+		<module>org.eclipse.xtext.purexbase.tests</module>
+		<module>org.eclipse.xtext.testlanguages</module>
+		<module>org.eclipse.xtext.testlanguages.ui</module>
+		<module>org.eclipse.xtext.xtext.ui.graph.tests</module>
+	</modules>
+	<build>
+
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-maven-plugin</artifactId>
+				<version>0.12.0</version>
+				<extensions>true</extensions>
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-surefire-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<configuration>
+					<showEclipseLog>true</showEclipseLog>
+					<useUIHarness>true</useUIHarness>
+					<useUIThread>true</useUIThread>
+					<argLine>${platform.argLine}</argLine>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<profiles>
+		<profile>
+			<id>not-osx</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<platform.argLine>
+					${default.args}
+				</platform.argLine>
+			</properties>
+		</profile>
+		<profile>
+			<id>osx</id>
+			<activation>
+				<property>
+					<name>java.vendor.url</name>
+					<value>http://www.apple.com/</value>
+				</property>
+			</activation>
+			<properties>
+				<platform.argLine>
+					${default.args} -XstartOnFirstThread
+				</platform.argLine>
+			</properties>
+		</profile>
+	</profiles>
+</project>

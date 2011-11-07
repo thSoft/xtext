@@ -257,8 +257,13 @@ public class AbstractSyntacticSequencer extends GeneratedFile {
           }
         };
       List<AbstractRule> _sort = IterableExtensions.<AbstractRule>sort(_set, new Comparator<AbstractRule>() {
+<<<<<<< HEAD
           public int compare(AbstractRule o1,AbstractRule o2) {
             return _function_3.apply(o1,o2);
+=======
+          public int compare(AbstractRule arg0,AbstractRule arg1) {
+            return _function_4.apply(arg0,arg1);
+>>>>>>> e7f963ce879c56df0f308e3eeacb433a67ee6490
           }
       });
       _xblockexpression = (_sort);

@@ -40,7 +40,7 @@ http://www.eclipse.org/legal/epl-v10.html Description here.
          version="0.0.0"
          unpack="false"/>
 
-   <plugin
+  <!-- <plugin
          id="org.eclipse.test"
          download-size="0"
          install-size="0"
@@ -51,7 +51,7 @@ http://www.eclipse.org/legal/epl-v10.html Description here.
          download-size="0"
          install-size="0"
          version="0.0.0"
-         fragment="true"/>
+         fragment="true"/>-->
 
    <plugin
          id="org.eclipse.xtext.testlanguages"
