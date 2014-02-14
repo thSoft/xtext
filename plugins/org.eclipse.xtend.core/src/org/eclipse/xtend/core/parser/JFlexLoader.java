@@ -35,13 +35,15 @@ public class JFlexLoader implements IWorkflowComponent, JFlexMain {
 
 	private final static Logger log = Logger.getLogger(JFlexLoader.class);
 	
-	private static final String DOWNLOAD_URL = "http://jflex.de/jflex-1.4.3.zip";
+	private static final String VERSION = "1.5.0";
 	
-	private static final String MAIN_CLASS = "JFlex.Main";
+	private static final String DOWNLOAD_URL = "http://jflex.de/jflex-"+VERSION+".zip";
+	
+	private static final String MAIN_CLASS = "jflex.Main";
 
 	private ClassLoader loader = JFlexLoader.class.getClassLoader();
 	
-	private String downloadTo = "./.jflex.jar";
+	private String downloadTo = "./.jflex."+VERSION+".jar";
 
 	private boolean askBeforeDownload = true;
 	
@@ -107,12 +109,12 @@ public class JFlexLoader implements IWorkflowComponent, JFlexMain {
 	}
 
 	private boolean download(final File jarFile) throws IOException {
-		final File tempFile = File.createTempFile("JFlex", "zip");
+		final File tempFile = File.createTempFile("JFlex", ".zip");
 		tempFile.deleteOnExit();
 		if (askBeforeDownload) {
 			boolean ok = false;
 			while (!ok) {
-				System.err.print("Download JFlex 1.4.3? (type 'y' or 'n' and hit enter)");
+				System.err.print("Download JFlex "+VERSION+"? (type 'y' or 'n' and hit enter)");
 				int read = System.in.read();
 				if (read == 'n') {
 					return false;
@@ -121,7 +123,7 @@ public class JFlexLoader implements IWorkflowComponent, JFlexMain {
 				}
 			}
 		}
-		log.info("downloading JFlex 1.4.3 from '"+DOWNLOAD_URL+"' ...");
+		log.info("downloading JFlex "+VERSION+" from '"+DOWNLOAD_URL+"' ...");
 		ByteStreams.copy(new InputSupplier<InputStream>() {
 			public InputStream getInput() throws IOException {
 				return new BufferedInputStream(new URL(DOWNLOAD_URL).openStream());
@@ -135,7 +137,7 @@ public class JFlexLoader implements IWorkflowComponent, JFlexMain {
 		log.info("finished downloading. Now extracting to " + downloadTo);
 		final ZipFile zipFile = new ZipFile(tempFile);
 		try {
-			final ZipEntry entry = zipFile.getEntry("jflex/lib/JFlex.jar");
+			final ZipEntry entry = zipFile.getEntry("jflex-"+VERSION+"/lib/jflex-"+VERSION+".jar");
 			ByteStreams.copy(new InputSupplier<InputStream>() {
 				public InputStream getInput() throws IOException {
 					return zipFile.getInputStream(entry);

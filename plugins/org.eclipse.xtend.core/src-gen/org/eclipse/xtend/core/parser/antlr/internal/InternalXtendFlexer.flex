@@ -15,7 +15,7 @@ import org.antlr.runtime.TokenSource;
 %{
 
   public InternalXtendFlexer() {
-    this((java.io.Reader)null);
+    this(null);
   }
 
   public int getTokenLength() {

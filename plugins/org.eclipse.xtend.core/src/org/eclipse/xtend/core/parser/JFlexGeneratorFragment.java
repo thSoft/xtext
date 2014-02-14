@@ -64,6 +64,7 @@ public class JFlexGeneratorFragment extends AbstractGeneratorFragment {
 		XpandFacade.create(ctx).evaluate2(template, grammar, getParameters(grammar));
 		String fileName = "Internal" + GrammarUtil.getName(grammar)	+ "Flexer.flex";
 		main.runJFlex(new String[] {
+				"--noinputstreamctor",
 				"-d",
 				directory,
 				directory + "/" + fileName

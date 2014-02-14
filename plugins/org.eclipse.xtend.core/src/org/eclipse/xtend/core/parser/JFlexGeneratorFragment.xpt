@@ -48,7 +48,7 @@ import org.antlr.runtime.TokenSource;
 %{
 
   public «getGrammarFileName().toSimpleName()»Flexer() {
-    this((java.io.Reader)null);
+    this(null);
   }
 
   public int getTokenLength() {
