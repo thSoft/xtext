@@ -9,10 +9,10 @@ If you want to learn more about EMF, we recommend reading the link[http://www.ec
 section:model_metamodel[Model, Ecore Model, and Ecore]
 
 Xtext uses EMF models as the in-memory representation of any parsed text files. This in-memory 
-object graph is called the e[Abstract Syntax Tree] (AST). Depending on the community this concepts is 
+object graph is called the e[Abstract Syntax Tree] (AST). Depending on the community this concept is 
 also called e[document object graph (DOM)], e[semantic model], or simply e[model]. We use e[model] and e[AST] 
 interchangeably. Given the example model from the ref:DomainModelWalkThrough[tutorial], the AST 
-looks similar to this
+looks similar to this:
 
 img[images/ast.png][Sample AST][ ][width:50%]
 
@@ -21,18 +21,18 @@ The e[AST] should contain the essence of your textual models. It abstracts over 
 It is used by later processing steps, such as validation, compilation or interpretation. In EMF a model 
 is made up of instances of e[EObjects] which are connected and an codeRef[org.eclipse.emf.ecore.EObject] is an instance of an codeRef[org.eclipse.emf.ecore.EClass]. 
 A set of e[EClasses] if contained in a so called codeRef[org.eclipse.emf.ecore.EPackage], which are both concepts of e[Ecore] 
-In Xtext, meta models are either inferred from the grammar or predefined by the user 
+In Xtext, metamodels are either inferred from the grammar or predefined by the user 
 (see the section on ref:package_declarations[package declarations] for details). The next diagram shows 
-the meta model of our example:
+the metamodel of our example:
 
-img[images/metamodel.png][Sample meta model][][] 
+img[images/metamodel.png][Sample metamodel][][] 
 
-The language in which the meta model is defined is called e[Ecore]. In other words, the meta model is 
-the Ecore model of your language. Ecore an essential part of EMF. Your models instantiate the meta model, 
-and your meta model instantiates Ecore. To put an end to this recursion, Ecore is defined in itself 
+The language in which the metamodel is defined is called e[Ecore]. In other words, the metamodel is 
+the Ecore model of your language. Ecore an essential part of EMF. Your models instantiate the metamodel, 
+and your metamodel instantiates Ecore. To put an end to this recursion, Ecore is defined in itself 
 (an instance of itself). 
 
-The meta model defines the types of the semantic nodes as Ecore e[EClasses]. EClasses are shown as boxes 
+The metamodel defines the types of the semantic nodes as Ecore e[EClasses]. EClasses are shown as boxes 
 in the meta mode diagram, so in our example, e[Model], e[Type], e[SimpleType], e[Entity], and e[Property] 
 are EClasses. An EClass can inherit from other EClasses. Multiple inheritance is allowed in Ecore, but of 
 course cycles are forbidden.  
@@ -54,15 +54,14 @@ references, while e[type] and e[extends] are cross-references. For reasons of re
 cross-references in the sample model diagram. Note that in contrast to other parser generators, Xtext creates 
 ASTs with linked cross-references. 
 
-Other than associations in UML, EReferences in Ecore are always owned by one EClass and only navigable in the 
-direction form the owner to the type. Bi-directional associations must be modeled as two references, being 
+Unlike associations in UML, EReferences in Ecore are always owned by one EClass and only navigable in the 
+direction from the owner to the type. Bi-directional associations must be modeled as two references, being 
 e[eOpposite] of each other and owned by either end of the associations.
 
 The superclass of EAttributes and EReferences is e[EStructuralFeature] and allows to define a name and a 
 cardinality by setting e[lowerBound] and e[upperBound]. Setting the latter to -1 means 'unbounded'. 
 
-The common super type of EDataType and EClass is e[EClassifier]. An codeRef[org.eclipse.emf.ecore.EPackage] acts as a namespace and 
-container of EClassifiers. 
+The common super type of EDataType and EClass is e[EClassifier]. An codeRef[org.eclipse.emf.ecore.EPackage] acts as a namespace and container of EClassifiers. 
 
 We have summarized these most relevant concepts of Ecore in the following diagram:  
 
@@ -72,7 +71,7 @@ img[images/ecore.png][Ecore concepts][ ][ ]
 section:emf_codegen[EMF Code Generation]
 
 EMF also ships with a code generator that generates Java classes from your Ecore model. The code 
-generators input is the so called e[EMF generator model]. It decorates (references) the Ecore model 
+generator's input is the so called e[EMF generator model]. It decorates (references) the Ecore model 
 and adds additional information for the Ecore -> Java transformation. Xtext will automatically generate
 a generator model with reasonable defaults for all generated metamodels, and run the EMF code generator 
 on them. 
@@ -85,11 +84,11 @@ ul[
   item[A Java interface and a Java class for each EClassifier in your Ecore model. By default, 
     all classes will implement the interface codeRef[org.eclipse.emf.ecore.EObject], linking a lot
     of runtime functionality. ]
-  item[A Java bean property for each EStructuralFeature (member variable, accessor methods)]
+  item[A Java bean property for each EStructuralFeature (member variable, accessor methods).]
   item[A package interface and class, holding singleton objects for all elements of your Ecore 
     model, allowing reflection. EPackages are also registered to the 
     codeRef[org.eclipse.emf.ecore.EPackage$Registry] to be usable at runtime.]
-  item[A factory interface and class for creating instances]
+  item[A factory interface and class for creating instances.]
   item[An abstract switch class implementing a visitor pattern to avoid if-instanceof-cascades
     in your code.]
 ]
@@ -99,8 +98,8 @@ section:xtext_resource[XtextResource Implementation]
 
 Xtext provides an implementation of EMF's resource, the codeRef[org.eclipse.xtext.resource.XtextResource]. 
 This does not only encapsulate the parser that converts text to an EMF model but also the 
-ref:serialization[serializer] working the opposite direction. That way, an Xtext model just looks like any 
-other Ecore-based model from the outside, making it amenable for the use by other EMF based tools. In fact,
+ref:serialization[serializer] working in the opposite direction. That way, an Xtext model just looks like any 
+other Ecore-based model from the outside, making it amenable for the use by other EMF-based tools. In fact,
 the Xpand templates in the generator plug-in created by the Xtext wizard do not make any assumption on the 
 fact that the model is described in Xtext, and they would work fine with any model based on the same Ecore 
 model of the language. So in the ideal case, you can switch the serialization format of your models to your 
@@ -118,7 +117,7 @@ Using a self-defined textual syntax as the primary storage format has a number o
 default XMI serialization, e.g.
 ul[
   item[You can use well-known and easy-to-use tools and techniques for manipulation, such as text
-    editors, regular expressions, or stream editors.]
+    editors, regular expressions or stream editors.]
   item[You can use the same tools for version control as you use for source code. Comparing and 
     merging is performed in a syntax the developer is familiar with.]
   item[It is impossible to break the model such that it cannot be reopened in the editor again.]
@@ -174,9 +173,9 @@ The link[http://www.eclipse.org/modeling/gmp/?project=gmf][Graphical Modeling Fr
 to create graphical diagram editors for Ecore models. To illustrate how to build a GMF on top of an
 codeRef[org.eclipse.xtext.resource.XtextResource] we have provided an example. You must have the Helios version 2.3 of GMF Notation, 
 Runtime and Tooling and their dependencies installed in your workbench to run the example. With other 
-versions of GMF it might work to regenerate the diagram code. 
+versions of GMF it might work by regenerating the diagram code. 
 
-The example consists of a number of plug-ins
+The example consists of a number of plug-ins:
 
 table[
 tr[td[Plug-in]td[Framework]td[Purpose]td[Contents]]
@@ -238,7 +237,7 @@ a gmfmap model referring to the Ecore model derived form the Xtext grammar. We c
 the gmfgen model derived by GMF from the gmfmap model, namely to enable printing and to enable validation 
 and validation decorators. Then we generated the diagram editor.     
 
-Voilà, we now have a diagram editor that reads/writes its semantic model as text. Also note that the 
+Voilï¿½, we now have a diagram editor that reads/writes its semantic model as text. Also note that the 
 validator from Xtext is already integrated in the diagram editor via the menu bar. 
 
 
@@ -247,7 +246,7 @@ section2[Stage 2: Calling the Xtext Parser to Parse GMF Labels]
 GMF's generated parser for the labels is a bit poor: It will work on attributes only, and will fail for 
 cross-references, e.g. an attribute's type. So why not use the Xtext parser to process the user's input? 
 
-An codeRef[org.eclipse.xtext.resource.XtextResource] keeps track of it's concrete syntax representation by 
+An codeRef[org.eclipse.xtext.resource.XtextResource] keeps track of its concrete syntax representation by 
 means of a so called node model (see ref:parser_rules for a more detailed description). The node model 
 represents the parse tree and provides information on the offset, length and text that has been parsed to 
 create a semantic model element. The nodes are attached to their semantic elements by means of a node adapter.    
